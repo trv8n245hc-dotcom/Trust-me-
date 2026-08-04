@@ -1,0 +1,21 @@
+docx: Use this skill whenever the user wants to create, read, edit, or manipulate Word documents (.docx files) or Word templates (.dotx files).
+morning: Render the user's morning brief as a styled HTML artifact, or set it up as a recurring weekday task.
+pdf: Use this skill whenever the user wants to do anything with PDF files (read, extract, merge, split, rotate, watermark, create, fill forms, encrypt/decrypt, extract images, OCR).
+pptx: Use this skill any time a .pptx or .potx file is involved in any way (create, read, edit, combine/split, templates, layouts, speaker notes, comments).
+session-start-hook: Creating and developing startup hooks for Claude Code on the web.
+skill-creator: Create new skills, modify and improve existing skills, and measure skill performance.
+xlsx: Use this skill any time a spreadsheet file is the primary input or output (.xlsx, .xlsm, .xltx, .csv, .tsv).
+dataviz: Use this skill whenever creating any chart, graph, plot, dashboard, or data visualization.
+artifact-design: Design guidance and fundamentals for Artifacts.
+artifact-diagramming: Diagramming know-how for Artifacts.
+artifact-capabilities: Runtime capabilities a published Artifact page can be granted.
+update-config: Use this skill to configure the Claude Code harness via settings.json.
+keybindings-help: Use when the user wants to customize keyboard shortcuts, rebind keys, add chord bindings, or modify ~/.claude/keybindings.json.
+simplify: Review the changed code for reuse, simplification, efficiency, and altitude cleanups, then apply the fixes.
+fewer-permission-prompts: Scan your transcripts for common read-only Bash and MCP tool calls, then add a prioritized allowlist to project .claude/settings.json.
+loop: Run a prompt or slash command on a recurring interval.
+claude-api: Reference for the Claude API / Anthropic SDK.
+run: Launch and drive this project's app to see a change working.
+init: Initialize a new CLAUDE.md file with codebase documentation.
+review: Review a GitHub pull request.
+security-review: Complete a security review of the pending changes on the current branch.
