@@ -1637,3 +1637,68 @@ function MiniCard({ p, rank, onClick, onCompare, inCompare }: {
    git remote add origin https://github.com/<you>/trust-me-sa.git
    git push -u origin main
    
+
+---
+
+# 🏆 HiPPO Sales Agent Arena — Commission Board
+
+A separate, self-contained tool in this repo: **`index.html`**. Open it by double-clicking —
+no install, no server, no internet connection required. Share it as a single file with team
+leads.
+
+## Daily use (team leads)
+
+1. Export the daily stats from Excel and save as CSV. South African Excel (`;` delimited,
+   comma decimals) is handled automatically — so is the UK/US format.
+2. Open `index.html`, set the **Reporting date**, click **Upload Daily CSV** (or drag the
+   file anywhere onto the page).
+3. Filter the Arena by your own name in **Team lead** to see just your people.
+
+Press **Load Sample** at any time to see how the board behaves with example data.
+`sample-data.csv` in this repo is that same file, if you want the exact column shape.
+
+### Columns it looks for
+
+Business Manager · Team Lead · Agent · Brand · Contacts · Leads · Conversions · Sales ·
+Gross Sales · Gross Effectiveness · QA Points
+
+Header names are matched loosely (`Operator`, `Consultant`, `TL`, `A&G`, `First Woman` all
+work). Conversion, closing and effectiveness are always recomputed from the raw counts, so a
+mis-exported percentage column cannot corrupt the standings.
+
+## How an agent earns
+
+**Two gates. Miss either one and you earn R0 — there is no partial credit.**
+
+1. **Contacts** — you must be within 90% of *your own brand's* running average. Budget's
+   average is not First for Women's average, so brands with heavier contact flow get no
+   free advantage.
+2. **Effectiveness** (sales ÷ contacts) — Budget 31.6%, Auto & General 31.5%,
+   First for Women 34.7%.
+
+Clear both and you enter a bracket. How deep past your effectiveness target you go sets your
+multiplier (Entry ×1.00 → Legend ×2.00), and your share of the pool follows from there.
+Effectiveness is weighted at 70% and also drives the bracket — it is the metric that pays.
+
+**On top of the bracket:** Super Club R15,000 / R10,000 / R8,000 for the top three, R5,000 for
+finishing top of your own brand, and a Winner's Circle of 5–10% of the pool each when 5 or
+fewer agents qualify. QA error points (1–5) deduct either a rand value or a percentage.
+
+## The pool
+
+Opens at **R450,000** and moves ±1.5% every day on collective participation — more people
+clearing both gates grows it, people falling off shrinks it. Every day counts. It is capped
+so the budget can never be exceeded.
+
+## My Path tab
+
+- **The Coach** — "From your 344 contacts, at your current closing of 75.0%, you need 18 more
+  leads to reach 31.6% effectiveness." Plus live sliders.
+- **The Path Loader** — enter what you want to earn (R0–R100,000), press Load Path, and every
+  metric updates to the numbers that would get you there against today's live field.
+
+## Editing the rules
+
+Everything — targets, gates, brackets, QA table, pool size, bonus values — is editable in the
+**Rules** tab and saves to your browser. Export the rules as JSON to share an identical
+configuration with other team leads. Full specification in `COPILOT_PROMPT.md`.

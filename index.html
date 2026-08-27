@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HiPPO Sales Agent Arena — Commission Board</title>
+<style>
+/* ============================================================================
+   HiPPO SALES AGENT ARENA
+   Single-file commission board. No dependencies, no build step, no network.
+   Everything you are likely to change lives in the CONFIG object in the
+   <script> block below, or in the "Rules" tab of the running board.
+   ========================================================================== */
+
+:root{
+  /* ---- HiPPO shell (hippo.co.za: green + pink) ---- */
+  --hippo-green:#00A758;
+  --hippo-green-bright:#00D46A;
+  --hippo-pink:#E5007E;
+  --hippo-pink-soft:#FF4FA8;
+
+  --bg:#0A0F1A;
+  --bg-2:#111827;
+  --panel:#151D2C;
+  --panel-2:#1B2536;
+  --line:#26324a;
+  --line-soft:#1e2739;
+  --text:#EAF0F7;
+  --text-dim:#94A3B8;
+  --text-faint:#64748B;
+
+  --good:#00D46A;
+  --warn:#FFB020;
+  --bad:#FF5A5F;
+  --gold:#FFC93C;
+  --silver:#C9D3DF;
+  --bronze:#E08A45;
+
+  --radius:14px;
+  --radius-sm:9px;
+  /* System stack only — this file must render identically with no network at all.
+     Add a Google Fonts <link> in <head> and put the family first here if you
+     want Poppins/Montserrat and your team is always online. */
+  --font:'Segoe UI Variable','Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1200px 600px at 15% -10%, rgba(0,167,88,.16), transparent 60%),
+    radial-gradient(1000px 500px at 90% 0%, rgba(229,0,126,.13), transparent 60%),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--font);
+  font-size:15px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+h1,h2,h3,h4{margin:0;font-weight:700;letter-spacing:-.01em}
+button{font-family:inherit}
+input,select{font-family:inherit}
+
+.wrap{max-width:1500px;margin:0 auto;padding:18px 20px 80px}
+
+/* ---------- top bar ---------- */
+.topbar{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:14px 18px;border:1px solid var(--line);border-radius:var(--radius);
+  background:linear-gradient(135deg,rgba(0,167,88,.14),rgba(229,0,126,.10)),var(--panel);
+}
+.brandmark{display:flex;align-items:center;gap:11px;margin-right:auto}
+.brandmark .dot{
+  width:38px;height:38px;border-radius:11px;flex:0 0 auto;
+  background:linear-gradient(135deg,var(--hippo-green-bright),var(--hippo-pink));
+  display:grid;place-items:center;font-weight:800;font-size:17px;color:#06110A;
+}
+.brandmark .t1{font-size:17px;font-weight:800;letter-spacing:-.02em}
+.brandmark .t2{font-size:11.5px;color:var(--text-dim);letter-spacing:.14em;text-transform:uppercase}
+
+.btn{
+  border:1px solid var(--line);background:var(--panel-2);color:var(--text);
+  padding:9px 15px;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:600;
+  transition:.15s;white-space:nowrap;
+}
+.btn:hover{border-color:var(--hippo-green);background:#20293c}
+.btn.primary{
+  background:linear-gradient(135deg,var(--hippo-green),var(--hippo-green-bright));
+  border-color:transparent;color:#04120A;font-weight:700;
+}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.pink{background:linear-gradient(135deg,var(--hippo-pink),var(--hippo-pink-soft));border-color:transparent;color:#fff}
+.btn.ghost{background:transparent}
+.btn.sm{padding:6px 11px;font-size:12.5px}
+
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--text-faint);font-weight:600}
+input[type=text],input[type=number],input[type=date],input[type=search],select{
+  background:var(--bg-2);border:1px solid var(--line);color:var(--text);
+  padding:8px 11px;border-radius:9px;font-size:13.5px;outline:none;
+}
+input:focus,select:focus{border-color:var(--hippo-green)}
+
+/* ---------- the big number ---------- */
+.pot{
+  margin-top:16px;padding:26px 28px;border-radius:20px;position:relative;overflow:hidden;
+  border:1px solid var(--line);
+  background:
+    radial-gradient(700px 300px at 12% 0%, rgba(0,212,106,.20), transparent 65%),
+    radial-gradient(600px 300px at 88% 100%, rgba(229,0,126,.18), transparent 65%),
+    var(--panel);
+}
+.pot-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:26px;align-items:center}
+.pot-label{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--hippo-green-bright);font-weight:700}
+.pot-value{
+  font-size:clamp(46px,9vw,104px);font-weight:800;letter-spacing:-.045em;line-height:.98;margin:6px 0 2px;
+  background:linear-gradient(100deg,#fff 10%,var(--hippo-green-bright) 55%,var(--hippo-pink-soft) 95%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  font-variant-numeric:tabular-nums;
+}
+.pot-sub{color:var(--text-dim);font-size:13.5px}
+.pot-delta{font-weight:700}
+.pot-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.stat{background:rgba(10,15,26,.55);border:1px solid var(--line-soft);border-radius:12px;padding:12px 14px}
+.stat .k{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);font-weight:600}
+.stat .v{font-size:22px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.stat .n{font-size:11.5px;color:var(--text-dim)}
+.decay{margin-top:14px}
+.decay-track{height:9px;border-radius:99px;background:#0a0f1a;border:1px solid var(--line-soft);overflow:hidden}
+.decay-fill{height:100%;background:linear-gradient(90deg,var(--hippo-green),var(--hippo-green-bright),var(--hippo-pink));transition:width .5s}
+.decay-cap{display:flex;justify-content:space-between;font-size:11px;color:var(--text-faint);margin-top:5px}
+
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:6px;margin:20px 0 14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:0}
+.tab{
+  background:none;border:none;border-bottom:3px solid transparent;color:var(--text-dim);
+  padding:11px 16px;cursor:pointer;font-size:14px;font-weight:600;border-radius:8px 8px 0 0;
+}
+.tab:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.tab.on{color:var(--text);border-bottom-color:var(--hippo-green-bright);background:rgba(0,212,106,.07)}
+.view{display:none}
+.view.on{display:block}
+
+/* ---------- panels ---------- */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+.panel h3{font-size:15px;margin-bottom:3px}
+.panel .hint{color:var(--text-dim);font-size:12.5px;margin-bottom:14px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+
+/* ---------- drop zone ---------- */
+.drop{
+  border:2px dashed var(--line);border-radius:var(--radius);padding:20px;text-align:center;
+  background:var(--bg-2);transition:.18s;cursor:pointer;
+}
+.drop:hover,.drop.over{border-color:var(--hippo-green-bright);background:rgba(0,212,106,.07)}
+.drop .big{font-weight:700;font-size:15px}
+.drop .small{color:var(--text-dim);font-size:12.5px;margin-top:3px}
+
+/* ---------- brand chips ---------- */
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  border:1px solid var(--line);background:var(--panel-2);color:var(--text-dim);
+  padding:7px 14px;border-radius:99px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s;
+}
+.chip:hover{color:var(--text)}
+.chip.on{color:#fff;border-color:transparent;background:var(--c,var(--hippo-green))}
+.chip .n{opacity:.7;font-weight:500}
+
+/* ---------- table ---------- */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:1080px;font-size:13.5px}
+thead th{
+  text-align:left;padding:12px 12px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text-faint);font-weight:700;background:var(--bg-2);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:2;white-space:nowrap;cursor:pointer;user-select:none;
+}
+thead th:hover{color:var(--text)}
+thead th.num,tbody td.num{text-align:right;font-variant-numeric:tabular-nums}
+tbody td{padding:11px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+tbody tr{transition:.12s}
+tbody tr:hover{background:rgba(255,255,255,.035)}
+tbody tr.out{opacity:.5}
+tbody tr.me{background:rgba(0,212,106,.09)}
+tr.brandrow td:first-child{box-shadow:inset 4px 0 0 var(--c)}
+
+.rank{font-weight:800;font-size:16px;font-variant-numeric:tabular-nums;width:52px}
+.rank.r1{color:var(--gold)}.rank.r2{color:var(--silver)}.rank.r3{color:var(--bronze)}
+.agent{font-weight:600}
+.agent .sub{font-size:11.5px;color:var(--text-faint);font-weight:400}
+.bchip{
+  display:inline-block;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700;
+  background:var(--c);color:#fff;white-space:nowrap;
+}
+.money{font-weight:700;font-variant-numeric:tabular-nums}
+.money.zero{color:var(--text-faint);font-weight:500}
+.tier{
+  display:inline-block;padding:3px 9px;border-radius:7px;font-size:11px;font-weight:700;
+  border:1px solid var(--line);background:var(--panel-2);white-space:nowrap;
+}
+.gate-ok{color:var(--good);font-size:11.5px;font-weight:600}
+.gate-no{color:var(--bad);font-size:11.5px;font-weight:600}
+.badges{display:flex;gap:4px;flex-wrap:wrap}
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;white-space:nowrap}
+.badge.sc{background:rgba(255,201,60,.16);color:var(--gold);border:1px solid rgba(255,201,60,.35)}
+.badge.ch{background:rgba(0,212,106,.14);color:var(--good);border:1px solid rgba(0,212,106,.32)}
+.badge.wc{background:rgba(229,0,126,.16);color:var(--hippo-pink-soft);border:1px solid rgba(229,0,126,.38)}
+.badge.qa{background:rgba(255,90,95,.14);color:var(--bad);border:1px solid rgba(255,90,95,.32)}
+.qain{width:52px;padding:4px 7px;font-size:12.5px;text-align:center}
+
+/* ---------- rails ---------- */
+.rail{height:7px;border-radius:99px;background:#0a0f1a;border:1px solid var(--line-soft);overflow:hidden;margin-top:5px}
+.rail i{display:block;height:100%;border-radius:99px;transition:width .4s}
+.rail i.ok{background:linear-gradient(90deg,var(--hippo-green),var(--hippo-green-bright))}
+.rail i.no{background:linear-gradient(90deg,#8a2b2f,var(--bad))}
+
+/* ---------- brand cards ---------- */
+.bcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:14px}
+.bcard{border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;background:var(--panel);border-top:4px solid var(--c);position:relative}
+.bcard h4{font-size:16px}
+.bcard .tag{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);font-weight:700}
+.bcard .kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
+.bcard .kv:last-child{border-bottom:none}
+.bcard .kv b{font-variant-numeric:tabular-nums}
+.pill{position:absolute;top:14px;right:16px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--panel-2);border:1px solid var(--line);color:var(--text-dim)}
+
+/* ---------- coach / path ---------- */
+.coachgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.readout{background:var(--bg-2);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
+.readout .line{font-size:15px;line-height:1.7}
+.readout .line b{color:var(--hippo-green-bright);font-size:17px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px;margin-top:14px}
+.metric{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.metric .k{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);font-weight:700}
+.metric .v{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:1px}
+.metric .d{font-size:11px;color:var(--text-dim)}
+.metric.up{border-color:rgba(0,212,106,.45);background:rgba(0,212,106,.07)}
+input[type=range]{width:100%;accent-color:var(--hippo-green-bright)}
+.projbanner{
+  border:1px solid rgba(229,0,126,.45);background:rgba(229,0,126,.11);border-radius:12px;
+  padding:12px 16px;margin-bottom:14px;font-size:13.5px;
+}
+.projbanner b{color:var(--hippo-pink-soft)}
+.bignum{
+  font-size:clamp(38px,7vw,72px);font-weight:800;letter-spacing:-.04em;line-height:1;
+  font-variant-numeric:tabular-nums;
+  background:linear-gradient(100deg,#fff,var(--hippo-green-bright) 60%,var(--hippo-pink-soft));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+
+/* ---------- rules / admin ---------- */
+.rules-tbl{width:100%;min-width:0;font-size:13px}
+.rules-tbl td,.rules-tbl th{padding:7px 9px;border-bottom:1px solid var(--line-soft)}
+.rules-tbl input,.rules-tbl select{width:100%;padding:6px 9px;font-size:13px}
+.note{
+  border-left:3px solid var(--hippo-green);background:rgba(0,212,106,.07);
+  padding:10px 14px;border-radius:0 9px 9px 0;font-size:12.5px;color:var(--text-dim);margin-top:12px;
+}
+.note.warn{border-left-color:var(--warn);background:rgba(255,176,32,.08)}
+.empty{text-align:center;padding:52px 20px;color:var(--text-dim)}
+.empty .big{font-size:19px;font-weight:700;color:var(--text);margin-bottom:6px}
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:99;
+  background:var(--panel-2);border:1px solid var(--hippo-green);border-radius:11px;
+  padding:12px 20px;font-size:13.5px;font-weight:600;box-shadow:0 12px 34px rgba(0,0,0,.5);
+  opacity:0;pointer-events:none;transition:.25s;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+.toast.err{border-color:var(--bad)}
+
+@media (max-width:900px){
+  .pot-grid{grid-template-columns:1fr}
+  .wrap{padding:12px 12px 60px}
+  .pot{padding:20px 18px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= TOP BAR ================= -->
+  <div class="topbar">
+    <div class="brandmark">
+      <div class="dot">H</div>
+      <div>
+        <div class="t1">Sales Agent Arena</div>
+        <div class="t2">HiPPO Commission Board</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Reporting date</label>
+      <input type="date" id="uploadDate">
+    </div>
+    <button class="btn primary" id="btnUpload">Upload Daily CSV</button>
+    <button class="btn" id="btnSample">Load Sample</button>
+    <button class="btn ghost" id="btnClear">Clear Month</button>
+    <input type="file" id="fileInput" accept=".csv,.txt" style="display:none">
+  </div>
+
+  <!-- ================= THE BIG NUMBER ================= -->
+  <div class="pot">
+    <div class="pot-grid">
+      <div>
+        <div class="pot-label">Live Commission Pool</div>
+        <div class="pot-value" id="potValue">R0</div>
+        <div class="pot-sub" id="potSub">Upload a CSV to open the arena.</div>
+        <div class="decay">
+          <div class="decay-track"><div class="decay-fill" id="decayFill" style="width:0%"></div></div>
+          <div class="decay-cap">
+            <span id="decayFloor">Floor</span>
+            <span id="decayBase">Base R450 000</span>
+            <span id="decayCap">Cap</span>
+          </div>
+        </div>
+      </div>
+      <div class="pot-stats">
+        <div class="stat"><div class="k">Top Earner</div><div class="v" id="stTop">—</div><div class="n" id="stTopName">no qualifiers yet</div></div>
+        <div class="stat"><div class="k">Qualified</div><div class="v" id="stQual">0</div><div class="n" id="stQualN">of 0 eligible agents</div></div>
+        <div class="stat"><div class="k">Participation</div><div class="v" id="stPart">0%</div><div class="n" id="stPartN">drives the daily flex</div></div>
+        <div class="stat"><div class="k">Allocated</div><div class="v" id="stAlloc">R0</div><div class="n" id="stAllocN">of live pool</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TABS ================= -->
+  <div class="tabs">
+    <button class="tab on" data-view="arena">Arena</button>
+    <button class="tab" data-view="brands">Brands &amp; Averages</button>
+    <button class="tab" data-view="path">My Path</button>
+    <button class="tab" data-view="rules">Rules</button>
+  </div>
+
+  <!-- ================= ARENA ================= -->
+  <div class="view on" id="view-arena">
+    <div class="panel">
+      <div class="row" style="margin-bottom:12px">
+        <div class="field" style="flex:1;min-width:200px">
+          <label>Search agent / team lead / manager</label>
+          <input type="search" id="search" placeholder="Type a name…">
+        </div>
+        <div class="field">
+          <label>Team lead</label>
+          <select id="leadFilter"><option value="">All team leads</option></select>
+        </div>
+        <div class="field">
+          <label>Business manager</label>
+          <select id="bmFilter"><option value="">All managers</option></select>
+        </div>
+        <div class="field">
+          <label>Snapshot</label>
+          <select id="dateFilter"></select>
+        </div>
+      </div>
+      <div class="chips" id="brandChips"></div>
+    </div>
+
+    <div class="tablewrap">
+      <table id="board">
+        <thead>
+          <tr>
+            <th data-sort="rank">#</th>
+            <th data-sort="name">Agent</th>
+            <th data-sort="brand">Brand</th>
+            <th data-sort="lead">Team Lead</th>
+            <th class="num" data-sort="contacts">Contacts</th>
+            <th class="num" data-sort="eff">Effectiveness</th>
+            <th class="num" data-sort="conv">Conv</th>
+            <th class="num" data-sort="close">Close</th>
+            <th data-sort="tier">Bracket</th>
+            <th class="num" data-sort="points">Points</th>
+            <th class="num" data-sort="qa">QA</th>
+            <th class="num" data-sort="pay">Earnings</th>
+          </tr>
+        </thead>
+        <tbody id="boardBody"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="boardEmpty">
+      <div class="big">No data loaded</div>
+      <div>Upload today's CSV export, or press <b>Load Sample</b> to see how the arena behaves.</div>
+    </div>
+  </div>
+
+  <!-- ================= BRANDS ================= -->
+  <div class="view" id="view-brands">
+    <div class="panel">
+      <h3>Running brand averages</h3>
+      <div class="hint">Every target is relative to your own channel. The contacts gate is recalculated from the live average each time a file is uploaded, so a high-volume brand never out-ranks a low-volume one by volume alone.</div>
+      <div class="bcards" id="brandCards"></div>
+    </div>
+    <div class="panel">
+      <h3>Brand roster</h3>
+      <div class="hint">Pick a brand to see every agent in it, ranked on effectiveness.</div>
+      <div class="chips" id="brandChips2" style="margin-bottom:14px"></div>
+      <div class="tablewrap">
+        <table id="brandTable">
+          <thead><tr>
+            <th>#</th><th>Agent</th><th>Team Lead</th>
+            <th class="num">Contacts</th><th class="num">vs Gate</th>
+            <th class="num">Effectiveness</th><th class="num">vs Target</th>
+            <th class="num">Leads</th><th class="num">Sales</th><th class="num">Earnings</th>
+          </tr></thead>
+          <tbody id="brandBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MY PATH ================= -->
+  <div class="view" id="view-path">
+    <div class="panel">
+      <h3>Pick your name</h3>
+      <div class="hint">Everything below runs against the live field — your projected rand value and rank are calculated as if you actually posted these numbers today.</div>
+      <div class="row">
+        <div class="field" style="min-width:260px">
+          <label>Agent</label>
+          <select id="agentSelect"></select>
+        </div>
+        <button class="btn ghost sm" id="btnResetProj">Reset to actuals</button>
+      </div>
+    </div>
+
+    <div id="pathBody"></div>
+  </div>
+
+  <!-- ================= RULES ================= -->
+  <div class="view" id="view-rules">
+    <div class="panel">
+      <h3>Pool</h3>
+      <div class="hint">The pool opens at base and compounds &plusmn;the daily flex with collective participation. It may grow above base, but never past the hard cap.</div>
+      <div class="grid-4">
+        <div class="field"><label>Base (R)</label><input type="number" data-cfg="pool.base"></div>
+        <div class="field"><label>Hard upper cap (R)</label><input type="number" data-cfg="pool.upperCap"></div>
+        <div class="field"><label>Floor (% of base)</label><input type="number" data-cfg="pool.floorPct"></div>
+        <div class="field"><label>Daily flex (%)</label><input type="number" step="0.1" data-cfg="pool.dailyFlexPct"></div>
+        <div class="field"><label>Individual cap (R)</label><input type="number" data-cfg="pool.individualCap"></div>
+        <div class="field"><label>Min unlock (%)</label><input type="number" data-cfg="pool.minUnlockPct"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Brands, gates and targets</h3>
+      <div class="hint">Untick <b>Earning</b> to show a brand on the board without paying it. Set an effectiveness target and tick it to switch it on.</div>
+      <div class="tablewrap" style="border-radius:11px">
+        <table class="rules-tbl" id="brandRules">
+          <thead><tr>
+            <th>Brand</th><th style="width:120px">Effectiveness target %</th>
+            <th style="width:120px">Contacts gate % of avg</th><th style="width:90px">Earning</th>
+            <th style="width:130px">Colour</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Brackets</h3>
+      <div class="hint">Depth past your brand's effectiveness target sets your bracket multiplier. Rows are read top-down; the first one you clear is the one you get.</div>
+      <div class="tablewrap" style="border-radius:11px">
+        <table class="rules-tbl" id="bracketRules">
+          <thead><tr><th>Bracket</th><th style="width:170px">Min % of eff. target</th><th style="width:150px">Multiplier</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <div class="field"><label>Effectiveness weight</label><input type="number" step="0.05" data-cfg="weights.effectiveness"></div>
+        <div class="field"><label>Contacts weight</label><input type="number" step="0.05" data-cfg="weights.contacts"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>QA error points</h3>
+      <div class="hint">Each level deducts either a flat rand value or a percentage of that agent's gross earnings — pick per row. QA points come from the CSV column <b>QA Points</b>, or type them straight into the arena table.</div>
+      <div class="tablewrap" style="border-radius:11px">
+        <table class="rules-tbl" id="qaRules">
+          <thead><tr><th style="width:110px">Error points</th><th style="width:130px">Mode</th><th>Rand deduction</th><th>Percent deduction</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Super Club, Brand Champions &amp; Winner's Circle</h3>
+      <div class="grid-4">
+        <div class="field"><label>1st place (R)</label><input type="number" data-cfg="superClub.first"></div>
+        <div class="field"><label>2nd place (R)</label><input type="number" data-cfg="superClub.second"></div>
+        <div class="field"><label>3rd place (R)</label><input type="number" data-cfg="superClub.third"></div>
+        <div class="field"><label>Brand champion (R)</label><input type="number" data-cfg="brandChampion"></div>
+        <div class="field"><label>Winner's Circle max qualifiers</label><input type="number" data-cfg="winnersCircle.maxQualifiers"></div>
+        <div class="field"><label>Winner's Circle min %</label><input type="number" step="0.5" data-cfg="winnersCircle.minPct"></div>
+        <div class="field"><label>Winner's Circle max %</label><input type="number" step="0.5" data-cfg="winnersCircle.maxPct"></div>
+      </div>
+      <div class="note">All bonuses are funded <b>from</b> the pool, never on top of it. A final guard scales every payout down proportionally if the total would ever exceed the live pool, so the budget cannot be blown.</div>
+    </div>
+
+    <div class="panel">
+      <h3>Day history</h3>
+      <div class="hint">One snapshot per reporting date. The pool flex compounds across these in date order — delete a bad upload and the pool recalculates instantly.</div>
+      <div class="tablewrap" style="border-radius:11px">
+        <table class="rules-tbl" id="dayTable">
+          <thead><tr><th>Date</th><th class="num">Agents</th><th class="num">Qualified</th><th class="num">Participation</th><th class="num">Pool after</th><th style="width:80px"></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="btnExportCfg">Export rules (JSON)</button>
+        <button class="btn" id="btnImportCfg">Import rules (JSON)</button>
+        <button class="btn ghost" id="btnResetCfg">Reset rules to default</button>
+        <input type="file" id="cfgInput" accept=".json" style="display:none">
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ==========================================================================
+   1. CONFIG — the only block you need to touch.
+      Everything here is also editable live in the "Rules" tab and is saved
+      to this browser. Colours are referenced from the brand sites.
+   ========================================================================== */
+const DEFAULT_CONFIG = {
+  pool:{
+    base:450000,          // R450 000 base pool
+    upperCap:520000,      // pool MAY grow past base — hard stop here
+    floorPct:70,          // never decays below 70% of base
+    dailyFlexPct:1.5,     // ±1.5% per day, compounding on participation
+    individualCap:100000, // matches the 0–R100 000 Path Loader ceiling
+    minUnlockPct:35       // floor on how much of the pool unlocks at low participation
+  },
+  superClub:{ first:15000, second:10000, third:8000 },
+  brandChampion:5000,
+  winnersCircle:{ maxQualifiers:5, minPct:5, maxPct:10 },
+  weights:{ effectiveness:0.70, contacts:0.30 },
+  qa:[
+    { points:1, mode:'rand',    rand:500,  percent:2  },
+    { points:2, mode:'rand',    rand:1200, percent:5  },
+    { points:3, mode:'rand',    rand:2500, percent:10 },
+    { points:4, mode:'percent', rand:4000, percent:18 },
+    { points:5, mode:'percent', rand:6000, percent:30 }
+  ],
+  brackets:[
+    { name:'Legend',    minPctOfTarget:130, mult:2.00 },
+    { name:'Elite',     minPctOfTarget:120, mult:1.70 },
+    { name:'Contender', minPctOfTarget:110, mult:1.45 },
+    { name:'Riser',     minPctOfTarget:105, mult:1.25 },
+    { name:'Entry',     minPctOfTarget:100, mult:1.00 }
+  ],
+  brands:{
+    BUDGET:    { label:'Budget Insurance', short:'Budget',    earning:true,  effTarget:31.6, contactGatePct:90, color:'#0072CE' },
+    FFW:       { label:'First for Women',  short:'FFW',       earning:true,  effTarget:34.7, contactGatePct:90, color:'#E6007E' },
+    AG:        { label:'Auto & General',   short:'A&G',       earning:true,  effTarget:31.5, contactGatePct:90, color:'#E4002B' },
+    DIALDIRECT:{ label:'Dial Direct',      short:'Dial Direct',earning:false, effTarget:null, contactGatePct:90, color:'#6B2FA0' }
+  }
+};
+
+/* Brand name matching — everything a CSV export is likely to contain. */
+const BRAND_ALIASES = {
+  BUDGET:     ['budget','budgetinsurance','budgetins','bud'],
+  FFW:        ['firstforwomen','firstwoman','firstwomen','ffw','1stforwomen','fw'],
+  AG:         ['autoandgeneral','autogeneral','auto&general','a&g','ag','autoandgen','ortongeneral'],
+  DIALDIRECT: ['dialdirect','dial','dd','directdial']
+};
+
+/* ==========================================================================
+   2. State + storage
+   ========================================================================== */
+const LS_CFG = 'hippo_arena_config_v1';
+const LS_DAYS = 'hippo_arena_days_v1';
+
+let CONFIG = loadConfig();
+let STATE = {
+  days:loadDays(),        // { 'YYYY-MM-DD': { date, rows:[...] } }
+  activeDate:null,
+  brand:'ALL',
+  lead:'', bm:'', search:'',
+  sort:{ key:'pay', dir:-1 },
+  selectedAgent:null,
+  projection:null         // { t, metrics, pay, rank }
+};
+
+function loadConfig(){
+  try{
+    const raw = localStorage.getItem(LS_CFG);
+    if(!raw) return deepClone(DEFAULT_CONFIG);
+    return merge(deepClone(DEFAULT_CONFIG), JSON.parse(raw));
+  }catch(e){ return deepClone(DEFAULT_CONFIG); }
+}
+function saveConfig(){ try{ localStorage.setItem(LS_CFG, JSON.stringify(CONFIG)); }catch(e){} }
+function loadDays(){
+  try{ return JSON.parse(localStorage.getItem(LS_DAYS)) || {}; }catch(e){ return {}; }
+}
+function saveDays(){
+  try{ localStorage.setItem(LS_DAYS, JSON.stringify(STATE.days)); }
+  catch(e){ toast('Browser storage is full — older snapshots may not be saved.', true); }
+}
+function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+function merge(base, over){
+  for(const k in over){
+    if(over[k] && typeof over[k]==='object' && !Array.isArray(over[k]) && base[k]) merge(base[k], over[k]);
+    else base[k] = over[k];
+  }
+  return base;
+}
+
+/* ==========================================================================
+   3. Formatting helpers — South African conventions
+   ========================================================================== */
+function rand(n, dp){
+  if(!isFinite(n)) n = 0;
+  const d = dp===undefined ? 0 : dp;
+  const s = Math.abs(n).toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (n<0?'-':'') + 'R' + ' ' + s;
+}
+function pct(n, dp){ return (isFinite(n)?n:0).toFixed(dp===undefined?1:dp) + '%'; }
+function num(n){ return (isFinite(n)?Math.round(n):0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' '); }
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function todayISO(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+
+let toastTimer;
+function toast(msg, isErr){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isErr?' err':'');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.className = 'toast' + (isErr?' err':''); }, 3800);
+}
+
+/* ==========================================================================
+   4. CSV parsing — built for South African Excel
+      SA Excel writes ";" as the field delimiter and "," as the decimal
+      separator. Both that and the UK/US style are detected automatically.
+   ========================================================================== */
+/* Set by parseCSV. A ";" delimited file is SA Excel, so "," is the decimal
+   point. A "," delimited file is UK/US, so "," can only be a thousands mark. */
+let COMMA_DECIMAL = true;
+
+function sniffDelimiter(headerLine){
+  const counts = { ';':0, ',':0, '\t':0, '|':0 };
+  let inQ = false;
+  for(const ch of headerLine){
+    if(ch === '"') inQ = !inQ;
+    else if(!inQ && counts[ch] !== undefined) counts[ch]++;
+  }
+  let best = ';', bestN = -1;
+  // ";" wins ties — it is the SA Excel default.
+  for(const d of [';', '\t', '|', ',']){
+    if(counts[d] > bestN){ best = d; bestN = counts[d]; }
+  }
+  return bestN > 0 ? best : ',';
+}
+
+function parseCSV(text){
+  text = text.replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  const firstLine = text.slice(0, text.indexOf('\n') === -1 ? text.length : text.indexOf('\n'));
+  const delim = sniffDelimiter(firstLine);
+  COMMA_DECIMAL = (delim !== ',');
+
+  const rows = [];
+  let row = [], field = '', inQ = false;
+  for(let i=0; i<text.length; i++){
+    const c = text[i];
+    if(inQ){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQ = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQ = true;
+      else if(c === delim){ row.push(field); field = ''; }
+      else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+
+  const clean = rows.filter(r => r.some(c => String(c).trim() !== ''));
+  if(!clean.length) return { delim, headers:[], data:[] };
+  const headers = clean[0].map(h => String(h).trim());
+  const data = clean.slice(1).map(r => {
+    const o = {};
+    headers.forEach((h,i)=> o[h] = (r[i]===undefined ? '' : String(r[i]).trim()));
+    return o;
+  });
+  return { delim, headers, data };
+}
+
+/* Number parsing that survives "R 1 234,56", "1.234,56", "31,6", "31.6%" */
+function parseNum(raw){
+  if(raw === null || raw === undefined) return 0;
+  if(typeof raw === 'number') return isFinite(raw) ? raw : 0;
+  let s = String(raw).trim();
+  if(!s || /^-+$/.test(s)) return 0;
+  const neg = /^\(.*\)$/.test(s) || s.trim().startsWith('-');
+  s = s.replace(/[Rr]/g, '')                                  // R 1 234,00
+       .replace(/[%()]/g, '')                                 // 31,6%   (1 234,00)
+       .replace(/[\s    ]/g, '')          // every kind of space
+       .replace(/^-/, '');
+
+  const lastComma = s.lastIndexOf(','), lastDot = s.lastIndexOf('.');
+  if(lastComma > -1 && lastDot > -1){
+    // Both present: whichever comes last is the decimal point.
+    if(lastComma > lastDot) s = s.replace(/\./g, '').replace(',', '.');
+    else s = s.replace(/,/g, '');
+  } else if(lastComma > -1){
+    const parts = s.split(',');
+    if(!COMMA_DECIMAL) s = parts.join('');                                // 1,234 -> 1234
+    else if(parts.length === 2) s = parts.join('.');                      // 31,6  -> 31.6
+    else s = parts.slice(0,-1).join('') + '.' + parts[parts.length-1];    // 1,234,56 -> 1234.56
+  } else if(lastDot > -1){
+    const parts = s.split('.');
+    // In an SA file a dot can only ever be a thousands mark: 1.234 / 1.234.567
+    if(COMMA_DECIMAL && (parts.length > 2 || (parts.length === 2 && parts[1].length === 3 && parts[0].length > 0))){
+      s = parts.join('');
+    }
+  }
+  const n = parseFloat(s);
+  if(!isFinite(n)) return 0;
+  return neg ? -n : n;
+}
+
+/* Header matching: case, space and punctuation insensitive, with aliases. */
+function normHeader(h){ return String(h).toLowerCase().replace(/[^a-z0-9]/g,''); }
+const FIELD_ALIASES = {
+  bm:       ['businessmanager','bm','manager','businessmgr','opsmanager','salesmanager'],
+  lead:     ['teamlead','tl','lead','supervisor','teamleader','coach'],
+  name:     ['agent','agentname','operator','operatorname','name','consultant','salesagent','fullname','employee'],
+  brand:    ['brand','brandname','channel','campaign','product','businessunit'],
+  contacts: ['contacts','contactstaken','totalcontacts','calls','contactsheld'],
+  leads:    ['leads','leadscreated','totalleads','quotes'],
+  conv:     ['conversion','conversions','conversionrate','convrate','conv'],
+  sales:    ['sales','closings','policies','saless','totalsales','deals','closed'],
+  gross:    ['grosssales','grosspremium','grossvalue','premium','api'],
+  eff:      ['grosseffectiveness','effectiveness','eff','effectivenessrate','grosseff'],
+  qa:       ['qapoints','qa','errorpoints','qaerrors','qaerrorpoints','errors','qascore']
+};
+function mapHeaders(headers){
+  const map = {};
+  const used = new Set();
+  for(const field in FIELD_ALIASES){
+    for(const h of headers){
+      if(used.has(h)) continue;
+      if(FIELD_ALIASES[field].indexOf(normHeader(h)) > -1){ map[field] = h; used.add(h); break; }
+    }
+  }
+  // second pass — allow "contains" matches for anything still unmapped
+  for(const field in FIELD_ALIASES){
+    if(map[field]) continue;
+    for(const h of headers){
+      if(used.has(h)) continue;
+      const n = normHeader(h);
+      if(FIELD_ALIASES[field].some(a => n.indexOf(a) > -1 || a.indexOf(n) > -1 && n.length > 3)){
+        map[field] = h; used.add(h); break;
+      }
+    }
+  }
+  return map;
+}
+function resolveBrand(raw){
+  const n = normHeader(raw);
+  if(!n) return null;
+  for(const code in BRAND_ALIASES){
+    if(BRAND_ALIASES[code].some(a => n === a)) return code;
+  }
+  for(const code in BRAND_ALIASES){
+    if(BRAND_ALIASES[code].some(a => n.indexOf(a) > -1 || a.indexOf(n) > -1)) return code;
+  }
+  return null;
+}
+
+function ingestCSV(text, date){
+  const parsed = parseCSV(text);
+  if(!parsed.data.length){ toast('That file has no data rows.', true); return; }
+  const map = mapHeaders(parsed.headers);
+  const missing = ['name','contacts'].filter(f => !map[f]);
+  if(missing.length){
+    toast('Could not find a column for: ' + missing.join(', ') + '. Check the headers.', true);
+    return;
+  }
+  const rows = [];
+  let unmatchedBrands = new Set();
+  parsed.data.forEach(r => {
+    const name = String(r[map.name]||'').trim();
+    if(!name) return;
+    const brandRaw = map.brand ? r[map.brand] : '';
+    const code = resolveBrand(brandRaw);
+    if(!code){ if(String(brandRaw||'').trim()) unmatchedBrands.add(String(brandRaw).trim()); return; }
+
+    const contacts = parseNum(r[map.contacts]);
+    let leads = map.leads ? parseNum(r[map.leads]) : 0;
+    let sales = map.sales ? parseNum(r[map.sales]) : 0;
+
+    // If sales/leads are missing, recover them from the supplied percentages.
+    if(!sales && map.eff && contacts){ sales = Math.round(asPct(r[map.eff])/100 * contacts); }
+    if(!leads && map.conv && contacts){ leads = Math.round(asPct(r[map.conv])/100 * contacts); }
+
+    rows.push({
+      bm:    map.bm   ? String(r[map.bm]||'').trim()   : '',
+      lead:  map.lead ? String(r[map.lead]||'').trim() : '',
+      name:  name,
+      brand: code,
+      contacts: contacts,
+      leads: leads,
+      sales: sales,
+      gross: map.gross ? parseNum(r[map.gross]) : 0,
+      qa: map.qa ? clamp(Math.round(parseNum(r[map.qa])), 0, 5) : 0
+    });
+  });
+
+  if(!rows.length){
+    toast('No rows matched a known brand. Check the Brand column.', true);
+    return;
+  }
+  STATE.days[date] = { date:date, rows:rows };
+  STATE.activeDate = date;
+  STATE.projection = null;
+  saveDays();
+  let msg = 'Loaded ' + rows.length + ' agents for ' + date + '.';
+  if(unmatchedBrands.size) msg += ' Skipped unknown brand(s): ' + Array.from(unmatchedBrands).slice(0,3).join(', ') + '.';
+  toast(msg);
+  renderAll();
+}
+/* A percentage cell may arrive as 31,6 / 31.6% / 0,316 */
+function asPct(raw){
+  const n = parseNum(raw);
+  if(n > 0 && n <= 1 && String(raw).indexOf('%') === -1) return n * 100;
+  return n;
+}
+
+/* ==========================================================================
+   5. THE ENGINE
+   ========================================================================== */
+
+/* Build per-brand aggregates + per-agent gate results for one day's rows. */
+function buildBoard(rows){
+  const brands = {};
+  for(const code in CONFIG.brands){
+    const cfg = CONFIG.brands[code];
+    brands[code] = {
+      code:code, cfg:cfg, agents:[], headcount:0,
+      totalContacts:0, totalLeads:0, totalSales:0,
+      avgContacts:0, gate:0, qualifiers:0, avgEff:0
+    };
+  }
+  const agents = rows.map((r,i) => {
+    const a = Object.assign({}, r);
+    a.id = r.brand + '|' + r.name + '|' + i;
+    a.conversion  = r.contacts > 0 ? r.leads / r.contacts : 0;
+    a.closing     = r.leads > 0 ? r.sales / r.leads : 0;
+    a.effectiveness = r.contacts > 0 ? (r.sales / r.contacts) * 100 : 0;
+    return a;
+  });
+
+  agents.forEach(a => {
+    const b = brands[a.brand];
+    if(!b) return;
+    b.agents.push(a);
+    b.headcount++;
+    b.totalContacts += a.contacts;
+    b.totalLeads += a.leads;
+    b.totalSales += a.sales;
+  });
+
+  for(const code in brands){
+    const b = brands[code];
+    b.avgContacts = b.headcount ? b.totalContacts / b.headcount : 0;
+    b.gate = b.avgContacts * (b.cfg.contactGatePct/100);
+    b.avgEff = b.totalContacts ? (b.totalSales / b.totalContacts) * 100 : 0;
+    b.medianClosing = median(b.agents.map(a=>a.closing).filter(x=>x>0));
+    b.medianConv    = median(b.agents.map(a=>a.conversion).filter(x=>x>0));
+  }
+
+  agents.forEach(a => gateAgent(a, brands[a.brand]));
+  for(const code in brands){
+    brands[code].qualifiers = brands[code].agents.filter(a=>a.qualified).length;
+  }
+  return { brands:brands, agents:agents };
+}
+
+function median(arr){
+  if(!arr.length) return 0;
+  const s = arr.slice().sort((x,y)=>x-y);
+  const m = Math.floor(s.length/2);
+  return s.length % 2 ? s[m] : (s[m-1]+s[m])/2;
+}
+
+/* Two gates. Miss either → R0. Both cleared → bracket + points. */
+function gateAgent(a, b){
+  const cfg = b.cfg;
+  a.brandAvgContacts = b.avgContacts;
+  a.gate = b.gate;
+  a.effTarget = cfg.effTarget;
+  a.earningBrand = !!cfg.earning && cfg.effTarget !== null && cfg.effTarget > 0;
+
+  a.passContacts = a.contacts >= b.gate && b.gate > 0;
+  a.passEff = a.earningBrand ? a.effectiveness >= cfg.effTarget : false;
+  a.qualified = a.earningBrand && a.passContacts && a.passEff;
+
+  a.contactDepth = b.avgContacts > 0 ? a.contacts / b.avgContacts : 0;
+  a.effDepth = a.earningBrand ? a.effectiveness / cfg.effTarget : 0;
+  a.contactsShort = Math.max(0, Math.ceil(b.gate - a.contacts));
+  a.salesShort = a.earningBrand ? Math.max(0, Math.ceil((cfg.effTarget/100) * a.contacts - a.sales)) : 0;
+
+  a.bracket = null; a.points = 0;
+  if(a.qualified){
+    const tiers = CONFIG.brackets.slice().sort((x,y)=>y.minPctOfTarget-x.minPctOfTarget);
+    for(const t of tiers){
+      if(a.effDepth * 100 >= t.minPctOfTarget){ a.bracket = t; break; }
+    }
+    if(!a.bracket) a.bracket = tiers[tiers.length-1];
+    const w = CONFIG.weights;
+    a.points = a.bracket.mult * (w.effectiveness * a.effDepth + w.contacts * a.contactDepth);
+  }
+  return a;
+}
+
+/* Participation for a day = qualifiers ÷ agents in earning brands. */
+function participationOf(rows){
+  const board = buildBoard(rows);
+  let eligible = 0, qual = 0;
+  board.agents.forEach(a => { if(a.earningBrand){ eligible++; if(a.qualified) qual++; } });
+  return eligible ? qual/eligible : 0;
+}
+
+/* Pool: opens at base, compounds ±flex per day on participation direction. */
+function computePool(uptoDate){
+  const p = CONFIG.pool;
+  // The cap can never sit below the base, and the floor can never sit above
+  // the cap — otherwise an edit in the Rules tab produces a nonsense pool.
+  const cap = Math.max(p.upperCap, p.base);
+  const floor = Math.min(p.base * (p.floorPct/100), cap);
+  const dates = Object.keys(STATE.days).sort().filter(d => !uptoDate || d <= uptoDate);
+  let pool = p.base, prev = null;
+  const hist = [];
+  dates.forEach((d,i) => {
+    const part = participationOf(STATE.days[d].rows);
+    if(i > 0) pool *= (part >= prev ? 1 + p.dailyFlexPct/100 : 1 - p.dailyFlexPct/100);
+    pool = clamp(pool, floor, cap);
+    hist.push({ date:d, participation:part, pool:pool, agents:STATE.days[d].rows.length });
+    prev = part;
+  });
+  return { pool:pool, hist:hist, floor:floor, cap:cap };
+}
+
+/* Distribute the pool. Every bonus is funded FROM the pool. */
+function computePayouts(board, pool){
+  const cfgP = CONFIG.pool;
+  const eligible = board.agents.filter(a => a.earningBrand);
+  const qs = board.agents.filter(a => a.qualified).sort((x,y) => y.points - x.points);
+  const participation = eligible.length ? qs.length / eligible.length : 0;
+
+  board.agents.forEach(a => {
+    a.basePay = 0; a.superClub = 0; a.champion = 0; a.circle = 0;
+    a.gross = 0; a.qaDeduction = 0; a.pay = 0; a.capped = false;
+  });
+
+  const result = {
+    pool:pool, participation:participation, qualifiers:qs.length, eligible:eligible.length,
+    reserves:0, circleTotal:0, distributable:0, unlock:0, allocated:0, qaSaved:0, guard:1, circlePct:0
+  };
+  if(!qs.length) return result;
+
+  // How much of the pool unlocks — scales with collective participation.
+  const minU = cfgP.minUnlockPct/100;
+  const unlock = clamp(minU + (1-minU) * participation, minU, 1);
+
+  // Reserves: Super Club + one Brand Champion per earning brand with a qualifier.
+  let reserves = 0;
+  if(qs.length >= 1) reserves += CONFIG.superClub.first;
+  if(qs.length >= 2) reserves += CONFIG.superClub.second;
+  if(qs.length >= 3) reserves += CONFIG.superClub.third;
+  const champBrands = {};
+  qs.forEach(a => { if(!champBrands[a.brand]) champBrands[a.brand] = a; }); // qs already sorted by points
+  reserves += Object.keys(champBrands).length * CONFIG.brandChampion;
+
+  // Winner's Circle — only when the field is tiny. Scarcer = richer.
+  const wc = CONFIG.winnersCircle;
+  let circlePct = 0;
+  if(qs.length <= wc.maxQualifiers){
+    const span = Math.max(1, wc.maxQualifiers - 1);
+    circlePct = wc.maxPct - (wc.maxPct - wc.minPct) * ((qs.length - 1) / span);
+    circlePct = clamp(circlePct, Math.min(wc.minPct, wc.maxPct), Math.max(wc.minPct, wc.maxPct));
+  }
+  const circleTotal = qs.length * pool * (circlePct/100);
+
+  const distributable = Math.max(0, (pool - reserves - circleTotal) * unlock);
+  const totalPoints = qs.reduce((s,a) => s + a.points, 0) || 1;
+
+  qs.forEach((a,i) => {
+    a.basePay = (a.points / totalPoints) * distributable;
+    if(i === 0) a.superClub = CONFIG.superClub.first;
+    else if(i === 1) a.superClub = CONFIG.superClub.second;
+    else if(i === 2) a.superClub = CONFIG.superClub.third;
+    if(champBrands[a.brand] === a) a.champion = CONFIG.brandChampion;
+    a.circle = pool * (circlePct/100);
+    a.gross = a.basePay + a.superClub + a.champion + a.circle;
+
+    const qaRow = CONFIG.qa.find(q => q.points === a.qa);
+    a.qaDeduction = !qaRow ? 0 : (qaRow.mode === 'rand' ? qaRow.rand : a.gross * (qaRow.percent/100));
+    a.qaDeduction = Math.min(a.qaDeduction, a.gross);
+
+    let net = a.gross - a.qaDeduction;
+    if(net > cfgP.individualCap){ net = cfgP.individualCap; a.capped = true; }
+    a.pay = Math.max(0, net);
+  });
+
+  // Budget guard — the pool can never be exceeded, whatever the rules say.
+  let allocated = qs.reduce((s,a) => s + a.pay, 0);
+  let guard = 1;
+  if(allocated > pool && allocated > 0){
+    guard = pool / allocated;
+    qs.forEach(a => { a.pay *= guard; });
+    allocated = pool;
+  }
+
+  result.reserves = reserves;
+  result.circleTotal = circleTotal;
+  result.circlePct = circlePct;
+  result.distributable = distributable;
+  result.unlock = unlock;
+  result.allocated = allocated;
+  result.qaSaved = qs.reduce((s,a) => s + a.qaDeduction, 0);
+  result.guard = guard;
+  return result;
+}
+
+/* One call: current snapshot → fully costed board. */
+function currentBoard(){
+  const date = STATE.activeDate;
+  const day = date ? STATE.days[date] : null;
+  if(!day) return null;
+  const board = buildBoard(day.rows);
+  const poolInfo = computePool(date);
+  const payout = computePayouts(board, poolInfo.pool);
+  board.poolInfo = poolInfo;
+  board.payout = payout;
+  board.ranked = board.agents.slice().sort((a,b) => b.pay - a.pay || b.points - a.points || b.effectiveness - a.effectiveness);
+  board.ranked.forEach((a,i) => a.rank = i+1);
+  return board;
+}
+
+/* ==========================================================================
+   6. Projection — "what would I earn if…"
+      Holds the agent's conversion rate, lifts closing first, then contacts,
+      and always clears the contacts gate. Monotonic in t, so a binary
+      search finds the effort level that pays a chosen rand value.
+   ========================================================================== */
+function projectMetrics(agent, board, t){
+  const b = board.brands[agent.brand];
+  const conv = agent.conversion > 0 ? agent.conversion : (b.medianConv || 0.4);
+  const closeBase = agent.closing > 0 ? agent.closing : (b.medianClosing || 0.75);
+
+  // Both levers rise together so a path reads like real coaching rather than
+  // "close every single lead". Closing is capped at a believable 95%.
+  const closeMult = 1 + t * 0.55;   // quality first — effectiveness is the metric that pays
+  const contMult  = 1 + t * 0.28;   // volume second
+
+  const contacts = Math.max(Math.round(agent.contacts * contMult), Math.ceil(b.gate));
+  const closing  = Math.min(0.95, closeBase * closeMult);
+  const leads    = Math.round(contacts * conv);
+  const sales    = Math.min(leads, Math.round(leads * closing));
+  return {
+    contacts:contacts, leads:leads, sales:sales,
+    conversion: contacts ? leads/contacts : 0,
+    closing: leads ? sales/leads : 0,
+    effectiveness: contacts ? (sales/contacts)*100 : 0
+  };
+}
+
+/* Re-run the whole board with one agent's numbers replaced.
+   The pool is held at today's live value — a projection shows what the
+   agent would earn out of the pot as it stands, not a moved pot. */
+function payWithMetrics(agent, m, pool){
+  const day = STATE.days[STATE.activeDate];
+  const rows = day.rows.map(r => {
+    if(r.name === agent.name && r.brand === agent.brand){
+      return Object.assign({}, r, { contacts:m.contacts, leads:m.leads, sales:m.sales });
+    }
+    return r;
+  });
+  const board = buildBoard(rows);
+  computePayouts(board, pool);
+  const ranked = board.agents.slice().sort((a,b) => b.pay - a.pay || b.points - a.points);
+  const me = ranked.find(a => a.name === agent.name && a.brand === agent.brand);
+  return { pay: me ? me.pay : 0, rank: me ? ranked.indexOf(me)+1 : ranked.length, agent: me, field: ranked.length };
+}
+
+/* Binary search the effort level that pays `target`. */
+function solvePath(agent, board, target){
+  let lo = 0, hi = 6;
+  const pool = board.poolInfo ? board.poolInfo.pool : computePool(STATE.activeDate).pool;
+  const at = t => {
+    const m = projectMetrics(agent, board, t);
+    const r = payWithMetrics(agent, m, pool);
+    return { t:t, m:m, pay:r.pay, rank:r.rank, field:r.field, projected:r.agent };
+  };
+  const top = at(hi);
+  if(top.pay < target) return { reached:false, best:top };
+  const bottom = at(lo);
+  if(bottom.pay >= target) return { reached:true, best:bottom };
+  for(let i=0; i<44; i++){
+    const mid = (lo+hi)/2;
+    if(at(mid).pay >= target) hi = mid; else lo = mid;
+  }
+  return { reached:true, best:at(hi) };
+}
+
+/* ==========================================================================
+   7. Rendering
+   ========================================================================== */
+function brandColor(code){ return (CONFIG.brands[code] && CONFIG.brands[code].color) || '#888'; }
+function brandLabel(code){ return (CONFIG.brands[code] && CONFIG.brands[code].label) || code; }
+
+function renderAll(){
+  renderDates();
+  const board = currentBoard();
+  renderPot(board);
+  renderFilters(board);
+  renderChips(board);
+  renderTable(board);
+  renderBrandCards(board);
+  renderBrandTable(board);
+  renderAgentSelect(board);
+  renderPath(board);
+  renderRules();
+  renderDays();
+}
+
+function renderDates(){
+  const sel = document.getElementById('dateFilter');
+  const dates = Object.keys(STATE.days).sort().reverse();
+  if(!STATE.activeDate || !STATE.days[STATE.activeDate]) STATE.activeDate = dates[0] || null;
+  sel.innerHTML = dates.length
+    ? dates.map(d => '<option value="'+d+'"'+(d===STATE.activeDate?' selected':'')+'>'+d+'</option>').join('')
+    : '<option value="">No snapshots</option>';
+}
+
+function renderPot(board){
+  const p = CONFIG.pool;
+  const el = id => document.getElementById(id);
+  if(!board){
+    el('potValue').textContent = rand(p.base);
+    el('potSub').textContent = 'Base pool. Upload today’s CSV to open the arena.';
+    el('decayFill').style.width = '50%';
+    el('decayFloor').textContent = 'Floor ' + rand(p.base*(p.floorPct/100));
+    el('decayBase').textContent = 'Base ' + rand(p.base);
+    el('decayCap').textContent  = 'Cap ' + rand(p.upperCap);
+    document.getElementById('boardEmpty').style.display = 'block';
+    return;
+  }
+  document.getElementById('boardEmpty').style.display = board.agents.length ? 'none' : 'block';
+  const pi = board.poolInfo, pay = board.payout;
+  el('potValue').textContent = rand(pi.pool);
+
+  const delta = pi.pool - p.base;
+  const dTxt = delta === 0 ? 'level with base'
+    : (delta > 0 ? '<span class="pot-delta" style="color:var(--good)">&#9650; ' + rand(Math.abs(delta)) + ' above base</span>'
+                 : '<span class="pot-delta" style="color:var(--bad)">&#9660; ' + rand(Math.abs(delta)) + ' below base</span>');
+  el('potSub').innerHTML = dTxt + ' &nbsp;·&nbsp; ' + pi.hist.length + ' day' + (pi.hist.length===1?'':'s') +
+    ' banked &nbsp;·&nbsp; every day moves it ' + pct(p.dailyFlexPct,1) + ' &nbsp;·&nbsp; snapshot ' + esc(STATE.activeDate);
+
+  const span = Math.max(1, pi.cap - pi.floor);
+  el('decayFill').style.width = clamp(((pi.pool - pi.floor)/span)*100, 2, 100) + '%';
+  el('decayFloor').textContent = 'Floor ' + rand(pi.floor);
+  el('decayBase').textContent = 'Base ' + rand(p.base);
+  el('decayCap').textContent = 'Cap ' + rand(pi.cap);
+
+  const top = board.ranked.find(a => a.pay > 0);
+  el('stTop').textContent = top ? rand(top.pay) : 'R 0';
+  el('stTopName').textContent = top ? top.name + ' · ' + brandLabel(top.brand) : 'no qualifiers yet';
+  el('stQual').textContent = pay.qualifiers;
+  el('stQualN').textContent = 'of ' + pay.eligible + ' eligible agents';
+  el('stPart').textContent = pct(pay.participation*100, 0);
+  el('stPartN').textContent = pay.circlePct > 0 ? 'Winner’s Circle live at ' + pct(pay.circlePct,0) + ' each' : 'drives the daily flex';
+  el('stAlloc').textContent = rand(pay.allocated);
+  el('stAllocN').textContent = pct((pay.allocated/pi.pool)*100, 0) + ' of live pool' + (pay.guard < 1 ? ' · budget guard applied' : '');
+}
+
+function renderFilters(board){
+  const leads = new Set(), bms = new Set();
+  if(board) board.agents.forEach(a => { if(a.lead) leads.add(a.lead); if(a.bm) bms.add(a.bm); });
+  fill('leadFilter', Array.from(leads).sort(), STATE.lead, 'All team leads');
+  fill('bmFilter', Array.from(bms).sort(), STATE.bm, 'All managers');
+  function fill(id, arr, val, all){
+    const s = document.getElementById(id);
+    s.innerHTML = '<option value="">'+all+'</option>' +
+      arr.map(v => '<option value="'+esc(v)+'"'+(v===val?' selected':'')+'>'+esc(v)+'</option>').join('');
+  }
+}
+
+function renderChips(board){
+  const counts = {};
+  if(board) for(const c in board.brands) counts[c] = board.brands[c].headcount;
+  const html = ['<button class="chip'+(STATE.brand==='ALL'?' on':'')+'" data-brand="ALL" style="--c:var(--hippo-green)">All brands <span class="n">'+(board?board.agents.length:0)+'</span></button>']
+    .concat(Object.keys(CONFIG.brands).map(c =>
+      '<button class="chip'+(STATE.brand===c?' on':'')+'" data-brand="'+c+'" style="--c:'+brandColor(c)+'">'+
+      esc(CONFIG.brands[c].label) + ' <span class="n">' + (counts[c]||0) + '</span>' +
+      (CONFIG.brands[c].earning ? '' : ' <span class="n">· display only</span>') + '</button>'
+    )).join('');
+  ['brandChips','brandChips2'].forEach(id => {
+    const el = document.getElementById(id);
+    el.innerHTML = html;
+    el.querySelectorAll('.chip').forEach(c => c.onclick = () => { STATE.brand = c.dataset.brand; renderAll(); });
+  });
+}
+
+function visibleAgents(board){
+  if(!board) return [];
+  const q = STATE.search.toLowerCase();
+  return board.ranked.filter(a =>
+    (STATE.brand === 'ALL' || a.brand === STATE.brand) &&
+    (!STATE.lead || a.lead === STATE.lead) &&
+    (!STATE.bm || a.bm === STATE.bm) &&
+    (!q || a.name.toLowerCase().indexOf(q) > -1 || (a.lead||'').toLowerCase().indexOf(q) > -1 || (a.bm||'').toLowerCase().indexOf(q) > -1)
+  );
+}
+
+function renderTable(board){
+  const body = document.getElementById('boardBody');
+  if(!board){ body.innerHTML = ''; return; }
+  let list = visibleAgents(board);
+
+  const k = STATE.sort.key, dir = STATE.sort.dir;
+  const getters = {
+    rank:a=>a.rank, name:a=>a.name.toLowerCase(), brand:a=>brandLabel(a.brand), lead:a=>(a.lead||'').toLowerCase(),
+    contacts:a=>a.contacts, eff:a=>a.effectiveness, conv:a=>a.conversion, close:a=>a.closing,
+    tier:a=>a.bracket?a.bracket.mult:0, points:a=>a.points, qa:a=>a.qa, pay:a=>a.pay
+  };
+  const g = getters[k] || getters.pay;
+  list = list.slice().sort((a,b) => {
+    const x = g(a), y = g(b);
+    if(typeof x === 'string') return x.localeCompare(y) * (dir === -1 ? 1 : -1);
+    return (y - x) * (dir === -1 ? 1 : -1);
+  });
+
+  body.innerHTML = list.map(a => {
+    const c = brandColor(a.brand);
+    const badges = [];
+    if(a.superClub) badges.push('<span class="badge sc">Super Club '+rand(a.superClub)+'</span>');
+    if(a.champion) badges.push('<span class="badge ch">Brand Champion</span>');
+    if(a.circle > 0) badges.push('<span class="badge wc">Winner’s Circle</span>');
+    if(a.qaDeduction > 0) badges.push('<span class="badge qa">QA -'+rand(a.qaDeduction)+'</span>');
+
+    let gateCell;
+    if(!a.earningBrand) gateCell = '<span class="gate-no" style="color:var(--text-faint)">display only</span>';
+    else if(!a.passEff) gateCell = '<span class="gate-no">'+a.salesShort+' sale'+(a.salesShort===1?'':'s')+' short of '+pct(a.effTarget)+'</span>';
+    else gateCell = '<span class="gate-ok">+'+pct(a.effectiveness-a.effTarget)+' over target</span>';
+
+    let contactCell;
+    if(!a.passContacts) contactCell = '<span class="gate-no">'+a.contactsShort+' short of gate '+num(a.gate)+'</span>';
+    else contactCell = '<span class="gate-ok">gate '+num(a.gate)+' cleared</span>';
+
+    return '<tr class="brandrow'+(a.qualified?'':' out')+'" style="--c:'+c+'">' +
+      '<td class="rank'+(a.rank<=3&&a.pay>0?' r'+a.rank:'')+'">'+(a.pay>0?a.rank:'—')+'</td>' +
+      '<td class="agent">'+esc(a.name)+'<div class="sub">'+esc(a.bm||'')+'</div>'+
+        (badges.length?'<div class="badges" style="margin-top:4px">'+badges.join('')+'</div>':'')+'</td>' +
+      '<td><span class="bchip" style="--c:'+c+';background:'+c+'">'+esc(CONFIG.brands[a.brand].short)+'</span></td>' +
+      '<td>'+esc(a.lead||'—')+'</td>' +
+      '<td class="num">'+num(a.contacts)+'<div>'+contactCell+'</div>'+
+        '<div class="rail"><i class="'+(a.passContacts?'ok':'no')+'" style="width:'+clamp((a.contacts/(a.gate||1))*100,0,100)+'%"></i></div></td>' +
+      '<td class="num"><b>'+pct(a.effectiveness)+'</b><div>'+gateCell+'</div>'+
+        '<div class="rail"><i class="'+(a.passEff?'ok':'no')+'" style="width:'+clamp((a.effectiveness/(a.effTarget||100))*100,0,100)+'%"></i></div></td>' +
+      '<td class="num">'+pct(a.conversion*100)+'</td>' +
+      '<td class="num">'+pct(a.closing*100)+'</td>' +
+      '<td>'+(a.bracket?'<span class="tier" style="border-color:'+c+'">'+esc(a.bracket.name)+' &times;'+a.bracket.mult.toFixed(2)+'</span>':'<span class="tier">—</span>')+'</td>' +
+      '<td class="num">'+(a.points?a.points.toFixed(2):'—')+'</td>' +
+      '<td class="num"><input class="qain" type="number" min="0" max="5" value="'+a.qa+'" data-qa="'+esc(a.name)+'|'+a.brand+'"></td>' +
+      '<td class="num money'+(a.pay>0?'':' zero')+'">'+(a.pay>0?rand(a.pay):'R 0')+'</td>' +
+    '</tr>';
+  }).join('');
+
+  body.querySelectorAll('input[data-qa]').forEach(inp => {
+    inp.onchange = () => {
+      const [name, brand] = inp.dataset.qa.split('|');
+      const day = STATE.days[STATE.activeDate];
+      const row = day.rows.find(r => r.name === name && r.brand === brand);
+      if(row){ row.qa = clamp(Math.round(parseNum(inp.value)), 0, 5); saveDays(); renderAll(); }
+    };
+  });
+}
+
+function renderBrandCards(board){
+  const el = document.getElementById('brandCards');
+  el.innerHTML = Object.keys(CONFIG.brands).map(code => {
+    const cfg = CONFIG.brands[code];
+    const b = board ? board.brands[code] : null;
+    const hc = b ? b.headcount : 0;
+    return '<div class="bcard" style="--c:'+cfg.color+'">' +
+      '<div class="pill">'+(cfg.earning?'Earning':'Display only')+'</div>' +
+      '<div class="tag">Brand</div><h4>'+esc(cfg.label)+'</h4>' +
+      '<div style="margin-top:12px">' +
+        kv('Headcount', num(hc)) +
+        kv('Running avg contacts', b ? num(b.avgContacts) : '—') +
+        kv('Contacts gate ('+cfg.contactGatePct+'% of avg)', b ? num(b.gate) : '—') +
+        kv('Effectiveness target', cfg.effTarget !== null ? pct(cfg.effTarget) : '—') +
+        kv('Brand effectiveness', b ? pct(b.avgEff) : '—') +
+        kv('Qualified', b ? b.qualifiers + ' of ' + hc : '—') +
+      '</div></div>';
+  }).join('');
+  function kv(k,v){ return '<div class="kv"><span style="color:var(--text-dim)">'+k+'</span><b>'+v+'</b></div>'; }
+}
+
+function renderBrandTable(board){
+  const body = document.getElementById('brandBody');
+  if(!board){ body.innerHTML = ''; return; }
+  const list = board.agents
+    .filter(a => STATE.brand === 'ALL' || a.brand === STATE.brand)
+    .slice().sort((a,b) => b.effectiveness - a.effectiveness);
+  body.innerHTML = list.map((a,i) => {
+    const c = brandColor(a.brand);
+    return '<tr class="brandrow'+(a.qualified?'':' out')+'" style="--c:'+c+'">' +
+      '<td class="rank'+(i<3?' r'+(i+1):'')+'">'+(i+1)+'</td>' +
+      '<td class="agent">'+esc(a.name)+'<div class="sub">'+esc(brandLabel(a.brand))+'</div></td>' +
+      '<td>'+esc(a.lead||'—')+'</td>' +
+      '<td class="num">'+num(a.contacts)+'</td>' +
+      '<td class="num '+(a.passContacts?'gate-ok':'gate-no')+'">'+(a.passContacts?'+':'')+num(a.contacts-a.gate)+'</td>' +
+      '<td class="num"><b>'+pct(a.effectiveness)+'</b></td>' +
+      '<td class="num '+(a.passEff?'gate-ok':'gate-no')+'">'+(a.effTarget!==null?((a.effectiveness>=a.effTarget?'+':'')+pct(a.effectiveness-a.effTarget)):'—')+'</td>' +
+      '<td class="num">'+num(a.leads)+'</td>' +
+      '<td class="num">'+num(a.sales)+'</td>' +
+      '<td class="num money'+(a.pay>0?'':' zero')+'">'+(a.pay>0?rand(a.pay):'R 0')+'</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderAgentSelect(board){
+  const sel = document.getElementById('agentSelect');
+  if(!board){ sel.innerHTML = '<option>No data</option>'; return; }
+  const list = board.agents.slice().sort((a,b) => a.name.localeCompare(b.name));
+  if(!STATE.selectedAgent || !list.some(a => a.id === STATE.selectedAgent)) STATE.selectedAgent = list.length ? list[0].id : null;
+  sel.innerHTML = list.map(a => '<option value="'+esc(a.id)+'"'+(a.id===STATE.selectedAgent?' selected':'')+'>'+esc(a.name)+' — '+esc(CONFIG.brands[a.brand].short)+'</option>').join('');
+}
+
+/* ---- My Path: the Coach + the Path Loader ---- */
+function renderPath(board){
+  const host = document.getElementById('pathBody');
+  if(!board || !STATE.selectedAgent){ host.innerHTML = '<div class="panel"><div class="empty">Upload a CSV to use the coach.</div></div>'; return; }
+  const a = board.agents.find(x => x.id === STATE.selectedAgent);
+  if(!a){ host.innerHTML = ''; return; }
+  const b = board.brands[a.brand];
+  const proj = STATE.projection;
+  const shown = proj ? proj.m : { contacts:a.contacts, leads:a.leads, sales:a.sales, conversion:a.conversion, closing:a.closing, effectiveness:a.effectiveness };
+  const shownPay = proj ? proj.pay : a.pay;
+  const shownRank = proj ? proj.rank : a.rank;
+
+  // Coach line: what it takes to clear the effectiveness gate right now.
+  let coachLine;
+  if(!a.earningBrand){
+    coachLine = '<b>'+esc(brandLabel(a.brand))+'</b> is set to display only — no effectiveness target is loaded, so no earnings are calculated. Set a target in the Rules tab to switch it on.';
+  } else {
+    const closing = a.closing > 0 ? a.closing : (b.medianClosing || 0.75);
+    const salesNeeded = Math.ceil((a.effTarget/100) * shown.contacts);
+    const leadsNeeded = Math.ceil(salesNeeded / (closing || 1));
+    const extraLeads = Math.max(0, leadsNeeded - shown.leads);
+    const extraSales = Math.max(0, salesNeeded - shown.sales);
+    if(extraSales === 0){
+      coachLine = 'From your <b>'+num(shown.contacts)+'</b> contacts you are already <b>'+pct(shown.effectiveness - a.effTarget)+'</b> past the '+pct(a.effTarget)+' target. Every extra sale now pushes you deeper into the bracket.';
+    } else {
+      coachLine = 'From your <b>'+num(shown.contacts)+'</b> contacts, at your current closing of <b>'+pct(closing*100)+'</b>, you need <b>'+extraLeads+' more lead'+(extraLeads===1?'':'s')+'</b> — that is <b>'+extraSales+' more sale'+(extraSales===1?'':'s')+'</b> — to reach '+pct(a.effTarget)+' effectiveness.';
+    }
+  }
+  let gateLine = a.passContacts
+    ? 'Contacts gate <b>cleared</b> — you are '+num(a.contacts - a.gate)+' above the '+num(a.gate)+' needed in '+esc(brandLabel(a.brand))+'.'
+    : 'You need <b>'+a.contactsShort+' more contacts</b> to reach the '+esc(brandLabel(a.brand))+' gate of '+num(a.gate)+' ('+a.brandAvgContacts.toFixed(0)+' brand average &times; '+b.cfg.contactGatePct+'%).';
+
+  host.innerHTML =
+    (proj ? '<div class="projbanner"><b>PROJECTION</b> — this is what your month looks like if you achieve the following. Nothing on this screen is your actual result. <button class="btn sm ghost" id="btnClearProj" style="margin-left:8px">Back to actuals</button></div>' : '') +
+    '<div class="coachgrid">' +
+      '<div class="panel"><h3>The Coach</h3><div class="hint">Live maths on your own numbers — nothing here changes the board.</div>' +
+        '<div class="readout"><div class="line">'+coachLine+'</div><div class="line" style="margin-top:10px">'+gateLine+'</div></div>' +
+        '<div style="margin-top:16px">' +
+          slider('Contacts', 'sldContacts', shown.contacts, 0, Math.max(800, Math.ceil(shown.contacts*2))) +
+          slider('Leads', 'sldLeads', shown.leads, 0, Math.max(500, Math.ceil(shown.contacts*1.2))) +
+          slider('Sales', 'sldSales', shown.sales, 0, Math.max(400, Math.ceil(shown.contacts*1.2))) +
+        '</div>' +
+        '<div class="metrics" id="coachMetrics"></div>' +
+      '</div>' +
+      '<div class="panel"><h3>Path Loader</h3><div class="hint">Tell the board what you need to earn. It back-solves every metric against the live field.</div>' +
+        '<div class="row" style="align-items:flex-end">' +
+          '<div class="field" style="flex:1;min-width:150px"><label>I want to earn (R)</label><input type="number" id="pathTarget" min="0" max="'+CONFIG.pool.individualCap+'" step="500" value="'+Math.round(proj?proj.target:Math.max(15000, Math.round((a.pay||20000)/1000)*1000))+'"></div>' +
+          '<button class="btn primary" id="btnLoadPath">Load Path</button>' +
+        '</div>' +
+        '<input type="range" id="pathRange" min="0" max="'+CONFIG.pool.individualCap+'" step="500" value="'+Math.round(proj?proj.target:Math.max(15000,(a.pay||20000)))+'" style="margin-top:14px">' +
+        '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-faint)"><span>R0</span><span>'+rand(CONFIG.pool.individualCap)+'</span></div>' +
+        '<div style="margin-top:20px"><div class="pot-label">Projected earnings</div><div class="bignum">'+rand(shownPay)+'</div>' +
+        '<div class="pot-sub" style="margin-top:6px">Rank <b>'+shownRank+'</b> of '+board.agents.length+' &nbsp;·&nbsp; '+(proj&&proj.note?esc(proj.note):(a.qualified?'both gates cleared':'not currently earning'))+'</div></div>' +
+        '<div class="metrics" id="pathMetrics"></div>' +
+      '</div>' +
+    '</div>';
+
+  renderMetricRow('pathMetrics', a, shown, proj);
+  renderMetricRow('coachMetrics', a, shown, null);
+  wireCoach(a, board);
+
+  function slider(label, id, val, min, max){
+    return '<div class="field" style="margin-bottom:12px"><label>'+label+' — <span id="'+id+'v">'+num(val)+'</span></label>' +
+      '<input type="range" id="'+id+'" min="'+min+'" max="'+max+'" value="'+Math.round(val)+'"></div>';
+  }
+}
+
+function renderMetricRow(hostId, a, m, proj){
+  const host = document.getElementById(hostId);
+  if(!host) return;
+  const up = k => proj ? ' up' : '';
+  const d = (now, was, fmt) => proj ? '<div class="d">was ' + fmt(was) + '</div>' : '';
+  host.innerHTML =
+    metric('Contacts', num(m.contacts), up(), d(m.contacts, a.contacts, num)) +
+    metric('Leads', num(m.leads), up(), d(m.leads, a.leads, num)) +
+    metric('Sales', num(m.sales), up(), d(m.sales, a.sales, num)) +
+    metric('Conversion', pct(m.conversion*100), up(), d(0, a.conversion*100, v=>pct(v))) +
+    metric('Closing', pct(m.closing*100), up(), d(0, a.closing*100, v=>pct(v))) +
+    metric('Effectiveness', pct(m.effectiveness), up(), d(0, a.effectiveness, v=>pct(v)));
+  function metric(k,v,cls,sub){ return '<div class="metric'+cls+'"><div class="k">'+k+'</div><div class="v">'+v+'</div>'+sub+'</div>'; }
+}
+
+function wireCoach(a, board){
+  const ids = ['sldContacts','sldLeads','sldSales'];
+  const els = ids.map(i => document.getElementById(i));
+  if(els.some(e => !e)) return;
+  const update = () => {
+    const contacts = +els[0].value, leads = +els[1].value, sales = Math.min(+els[2].value, +els[1].value);
+    document.getElementById('sldContactsv').textContent = num(contacts);
+    document.getElementById('sldLeadsv').textContent = num(leads);
+    document.getElementById('sldSalesv').textContent = num(sales);
+    renderMetricRow('coachMetrics', a, {
+      contacts:contacts, leads:leads, sales:sales,
+      conversion: contacts?leads/contacts:0, closing: leads?sales/leads:0,
+      effectiveness: contacts?(sales/contacts)*100:0
+    }, null);
+  };
+  els.forEach(e => e.oninput = update);
+
+  const btn = document.getElementById('btnLoadPath');
+  const tgt = document.getElementById('pathTarget');
+  const rng = document.getElementById('pathRange');
+  if(rng && tgt){
+    rng.oninput = () => { tgt.value = rng.value; };
+    tgt.oninput = () => { rng.value = clamp(+tgt.value||0, 0, CONFIG.pool.individualCap); };
+  }
+  if(btn) btn.onclick = () => {
+    const target = clamp(parseNum(tgt.value), 0, CONFIG.pool.individualCap);
+    if(!a.earningBrand){ toast(brandLabel(a.brand) + ' is display only — set an effectiveness target first.', true); return; }
+    const res = solvePath(a, board, target);
+    STATE.projection = {
+      target:target, m:res.best.m, pay:res.best.pay, rank:res.best.rank,
+      note: res.reached
+        ? (res.best.pay > target * 1.02
+            ? 'Nearest achievable point above your target. Earnings step up in jumps — at each bracket edge, and again when you break into the Super Club or take your brand. This is the first rung that clears ' + rand(target) + '.'
+            : 'Path found — hit these numbers and you land here.')
+        : 'Out of reach today: ' + board.payout.qualifiers + ' agents are already sharing this pool. Your ceiling against the current field is ' + rand(res.best.pay) + ' — it rises as others fall away and as the pool grows.'
+    };
+    if(!res.reached) toast(rand(target) + ' is out of reach on the current field. Showing your ceiling instead.');
+    renderPath(currentBoard());
+  };
+  const clr = document.getElementById('btnClearProj');
+  if(clr) clr.onclick = () => { STATE.projection = null; renderPath(currentBoard()); };
+}
+
+/* ---- Rules tab ---- */
+function renderRules(){
+  document.querySelectorAll('[data-cfg]').forEach(inp => {
+    inp.value = getPath(CONFIG, inp.dataset.cfg);
+    inp.onchange = () => { setPath(CONFIG, inp.dataset.cfg, parseNum(inp.value)); saveConfig(); STATE.projection = null; renderAll(); };
+  });
+
+  const bt = document.querySelector('#brandRules tbody');
+  bt.innerHTML = Object.keys(CONFIG.brands).map(code => {
+    const b = CONFIG.brands[code];
+    return '<tr><td><b style="color:'+b.color+'">'+esc(b.label)+'</b></td>' +
+      '<td><input type="number" step="0.1" data-brand="'+code+'" data-key="effTarget" value="'+(b.effTarget===null?'':b.effTarget)+'" placeholder="not set"></td>' +
+      '<td><input type="number" step="1" data-brand="'+code+'" data-key="contactGatePct" value="'+b.contactGatePct+'"></td>' +
+      '<td style="text-align:center"><input type="checkbox" data-brand="'+code+'" data-key="earning"'+(b.earning?' checked':'')+'></td>' +
+      '<td><input type="text" data-brand="'+code+'" data-key="color" value="'+esc(b.color)+'"></td></tr>';
+  }).join('');
+  bt.querySelectorAll('[data-brand]').forEach(inp => {
+    inp.onchange = () => {
+      const b = CONFIG.brands[inp.dataset.brand], k = inp.dataset.key;
+      if(k === 'earning') b[k] = inp.checked;
+      else if(k === 'color') b[k] = inp.value.trim() || '#888';
+      else if(k === 'effTarget') b[k] = inp.value.trim() === '' ? null : parseNum(inp.value);
+      else b[k] = parseNum(inp.value);
+      saveConfig(); STATE.projection = null; renderAll();
+    };
+  });
+
+  const kt = document.querySelector('#bracketRules tbody');
+  kt.innerHTML = CONFIG.brackets.map((t,i) =>
+    '<tr><td><input type="text" data-br="'+i+'" data-key="name" value="'+esc(t.name)+'"></td>' +
+    '<td><input type="number" step="1" data-br="'+i+'" data-key="minPctOfTarget" value="'+t.minPctOfTarget+'"></td>' +
+    '<td><input type="number" step="0.05" data-br="'+i+'" data-key="mult" value="'+t.mult+'"></td></tr>'
+  ).join('');
+  kt.querySelectorAll('[data-br]').forEach(inp => {
+    inp.onchange = () => {
+      const t = CONFIG.brackets[+inp.dataset.br], k = inp.dataset.key;
+      t[k] = k === 'name' ? inp.value : parseNum(inp.value);
+      saveConfig(); STATE.projection = null; renderAll();
+    };
+  });
+
+  const qt = document.querySelector('#qaRules tbody');
+  qt.innerHTML = CONFIG.qa.map((q,i) =>
+    '<tr><td><b>'+q.points+'</b></td>' +
+    '<td><select data-qa="'+i+'" data-key="mode">' +
+      '<option value="rand"'+(q.mode==='rand'?' selected':'')+'>Rand</option>' +
+      '<option value="percent"'+(q.mode==='percent'?' selected':'')+'>Percent</option></select></td>' +
+    '<td><input type="number" data-qa="'+i+'" data-key="rand" value="'+q.rand+'"'+(q.mode==='rand'?'':' style="opacity:.45"')+'></td>' +
+    '<td><input type="number" step="0.5" data-qa="'+i+'" data-key="percent" value="'+q.percent+'"'+(q.mode==='percent'?'':' style="opacity:.45"')+'></td></tr>'
+  ).join('');
+  qt.querySelectorAll('[data-qa]').forEach(inp => {
+    inp.onchange = () => {
+      const q = CONFIG.qa[+inp.dataset.qa], k = inp.dataset.key;
+      q[k] = k === 'mode' ? inp.value : parseNum(inp.value);
+      saveConfig(); renderAll();
+    };
+  });
+}
+
+function renderDays(){
+  const tb = document.querySelector('#dayTable tbody');
+  const info = computePool(null);
+  if(!info.hist.length){ tb.innerHTML = '<tr><td colspan="6" style="color:var(--text-dim)">No snapshots yet.</td></tr>'; return; }
+  tb.innerHTML = info.hist.slice().reverse().map(h => {
+    const board = buildBoard(STATE.days[h.date].rows);
+    const q = board.agents.filter(a => a.qualified).length;
+    return '<tr><td><b>'+h.date+'</b></td><td class="num">'+h.agents+'</td><td class="num">'+q+'</td>' +
+      '<td class="num">'+pct(h.participation*100,0)+'</td><td class="num money">'+rand(h.pool)+'</td>' +
+      '<td><button class="btn sm ghost" data-del="'+h.date+'">Delete</button></td></tr>';
+  }).join('');
+  tb.querySelectorAll('[data-del]').forEach(b => {
+    b.onclick = () => {
+      if(!confirm('Delete the snapshot for ' + b.dataset.del + '? The pool will recalculate.')) return;
+      delete STATE.days[b.dataset.del];
+      if(STATE.activeDate === b.dataset.del) STATE.activeDate = null;
+      saveDays(); renderAll(); toast('Snapshot deleted.');
+    };
+  });
+}
+
+function getPath(o, p){ return p.split('.').reduce((x,k) => x[k], o); }
+function setPath(o, p, v){
+  const ks = p.split('.'); const last = ks.pop();
+  ks.reduce((x,k) => x[k], o)[last] = v;
+}
+
+/* ==========================================================================
+   8. Wiring
+   ========================================================================== */
+document.getElementById('uploadDate').value = todayISO();
+
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.view').forEach(x => x.classList.remove('on'));
+  t.classList.add('on');
+  document.getElementById('view-' + t.dataset.view).classList.add('on');
+});
+
+document.querySelectorAll('#board thead th').forEach(th => th.onclick = () => {
+  const k = th.dataset.sort;
+  if(!k) return;
+  STATE.sort = { key:k, dir: STATE.sort.key === k ? -STATE.sort.dir : -1 };
+  renderTable(currentBoard());
+});
+
+document.getElementById('btnUpload').onclick = () => document.getElementById('fileInput').click();
+document.getElementById('fileInput').onchange = e => {
+  const f = e.target.files[0];
+  if(!f) return;
+  const date = document.getElementById('uploadDate').value || todayISO();
+  const fr = new FileReader();
+  fr.onload = () => ingestCSV(fr.result, date);
+  fr.onerror = () => toast('Could not read that file.', true);
+  fr.readAsText(f);
+  e.target.value = '';
+};
+
+document.getElementById('search').oninput = e => { STATE.search = e.target.value; renderTable(currentBoard()); };
+document.getElementById('leadFilter').onchange = e => { STATE.lead = e.target.value; renderTable(currentBoard()); };
+document.getElementById('bmFilter').onchange = e => { STATE.bm = e.target.value; renderTable(currentBoard()); };
+document.getElementById('dateFilter').onchange = e => { STATE.activeDate = e.target.value; STATE.projection = null; renderAll(); };
+document.getElementById('agentSelect').onchange = e => { STATE.selectedAgent = e.target.value; STATE.projection = null; renderPath(currentBoard()); };
+document.getElementById('btnResetProj').onclick = () => { STATE.projection = null; renderPath(currentBoard()); };
+
+document.getElementById('btnClear').onclick = () => {
+  if(!confirm('Clear every snapshot and reset the pool to base? Rules are kept.')) return;
+  STATE.days = {}; STATE.activeDate = null; STATE.projection = null;
+  saveDays(); renderAll(); toast('Month cleared. Pool reset to base.');
+};
+
+document.getElementById('btnExportCfg').onclick = () => {
+  const blob = new Blob([JSON.stringify(CONFIG, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'hippo-arena-rules.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+document.getElementById('btnImportCfg').onclick = () => document.getElementById('cfgInput').click();
+document.getElementById('cfgInput').onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    try{
+      CONFIG = merge(deepClone(DEFAULT_CONFIG), JSON.parse(fr.result));
+      saveConfig(); renderAll(); toast('Rules imported.');
+    }catch(err){ toast('That is not a valid rules file.', true); }
+  };
+  fr.readAsText(f);
+  e.target.value = '';
+};
+document.getElementById('btnResetCfg').onclick = () => {
+  if(!confirm('Reset all rules to the built-in defaults?')) return;
+  CONFIG = deepClone(DEFAULT_CONFIG);
+  saveConfig(); renderAll(); toast('Rules reset to default.');
+};
+
+/* Drag and drop anywhere on the page */
+['dragover','drop'].forEach(ev => document.addEventListener(ev, e => {
+  e.preventDefault();
+  if(ev === 'drop'){
+    const f = e.dataTransfer.files[0];
+    if(!f) return;
+    const date = document.getElementById('uploadDate').value || todayISO();
+    const fr = new FileReader();
+    fr.onload = () => ingestCSV(fr.result, date);
+    fr.readAsText(f);
+  }
+}));
+
+/* Sample data — same shape as a real SA Excel export. */
+const SAMPLE_CSV = "Business Manager;Team Lead;Agent;Brand;Contacts;Leads;Conversions;Sales;Closings;Gross Sales;Gross Effectiveness;QA Points\n\
+Nomsa Dlamini;Sipho Khumalo;Thandiwe Mokoena;Budget Insurance;412;168;40,8;134;79,8;R 1 072 000,00;32,5;0\n\
+Nomsa Dlamini;Sipho Khumalo;Riaan van der Merwe;Budget Insurance;388;151;38,9;121;80,1;R 968 000,00;31,2;1\n\
+Nomsa Dlamini;Sipho Khumalo;Lerato Nkosi;Budget Insurance;455;201;44,2;169;84,1;R 1 352 000,00;37,1;0\n\
+Nomsa Dlamini;Sipho Khumalo;Ahmed Patel;Budget Insurance;301;110;36,5;82;74,5;R 656 000,00;27,2;2\n\
+Nomsa Dlamini;Sipho Khumalo;Chantelle Adams;Budget Insurance;398;170;42,7;139;81,8;R 1 112 000,00;34,9;0\n\
+Nomsa Dlamini;Bongani Zulu;Kagiso Molefe;Budget Insurance;421;179;42,5;142;79,3;R 1 136 000,00;33,7;0\n\
+Nomsa Dlamini;Bongani Zulu;Michelle du Toit;Budget Insurance;367;142;38,7;110;77,5;R 880 000,00;30,0;0\n\
+Nomsa Dlamini;Bongani Zulu;Sibusiso Mahlangu;Budget Insurance;490;223;45,5;196;87,9;R 1 568 000,00;40,0;0\n\
+Nomsa Dlamini;Bongani Zulu;Fatima Ismail;Budget Insurance;344;128;37,2;96;75,0;R 768 000,00;27,9;3\n\
+Nomsa Dlamini;Bongani Zulu;Pieter Botha;Budget Insurance;409;172;42,1;133;77,3;R 1 064 000,00;32,5;0\n\
+Nomsa Dlamini;Bongani Zulu;Zanele Mthembu;Budget Insurance;278;96;34,5;70;72,9;R 560 000,00;25,2;1\n\
+Nomsa Dlamini;Sipho Khumalo;Johan Pretorius;Budget Insurance;436;191;43,8;152;79,6;R 1 216 000,00;34,9;0\n\
+Themba Sithole;Anele Jacobs;Refilwe Sekhukhune;First for Women;356;158;44,4;131;82,9;R 1 048 000,00;36,8;0\n\
+Themba Sithole;Anele Jacobs;Karen Nel;First for Women;312;131;42,0;104;79,4;R 832 000,00;33,3;1\n\
+Themba Sithole;Anele Jacobs;Naledi Rampho;First for Women;389;181;46,5;155;85,6;R 1 240 000,00;39,8;0\n\
+Themba Sithole;Anele Jacobs;Shireen Naidoo;First for Women;298;118;39,6;92;78,0;R 736 000,00;30,9;2\n\
+Themba Sithole;Anele Jacobs;Palesa Moloi;First for Women;341;149;43,7;121;81,2;R 968 000,00;35,5;0\n\
+Themba Sithole;Mandy Fourie;Yolanda Steyn;First for Women;367;166;45,2;138;83,1;R 1 104 000,00;37,6;0\n\
+Themba Sithole;Mandy Fourie;Busisiwe Ngcobo;First for Women;284;108;38,0;83;76,9;R 664 000,00;29,2;0\n\
+Themba Sithole;Mandy Fourie;Anika Groenewald;First for Women;332;142;42,8;115;81,0;R 920 000,00;34,6;0\n\
+Themba Sithole;Mandy Fourie;Precious Baloyi;First for Women;405;192;47,4;166;86,5;R 1 328 000,00;41,0;0\n\
+Themba Sithole;Mandy Fourie;Cindy Wessels;First for Women;259;92;35,5;68;73,9;R 544 000,00;26,3;4\n\
+Gerhard Steenkamp;Vusi Ndlovu;Tebogo Maluleke;Auto and General;372;148;39,8;119;80,4;R 952 000,00;32,0;0\n\
+Gerhard Steenkamp;Vusi Ndlovu;Ruan Coetzee;Auto and General;418;177;42,3;145;81,9;R 1 160 000,00;34,7;0\n\
+Gerhard Steenkamp;Vusi Ndlovu;Ntombi Zwane;Auto and General;344;131;38,1;102;77,9;R 816 000,00;29,7;1\n\
+Gerhard Steenkamp;Vusi Ndlovu;Wayne Fisher;Auto and General;396;164;41,4;131;79,9;R 1 048 000,00;33,1;0\n\
+Gerhard Steenkamp;Vusi Ndlovu;Mpho Selepe;Auto and General;289;101;34,9;74;73,3;R 592 000,00;25,6;2\n\
+Gerhard Steenkamp;Elmarie Botha;Jaco Venter;Auto and General;441;196;44,4;163;83,2;R 1 304 000,00;37,0;0\n\
+Gerhard Steenkamp;Elmarie Botha;Nomvula Radebe;Auto and General;358;143;39,9;114;79,7;R 912 000,00;31,8;0\n\
+Gerhard Steenkamp;Elmarie Botha;Deon Marais;Auto and General;327;122;37,3;95;77,9;R 760 000,00;29,1;3\n\
+Gerhard Steenkamp;Elmarie Botha;Asanda Mbeki;Auto and General;383;159;41,5;127;79,9;R 1 016 000,00;33,2;0\n\
+Gerhard Steenkamp;Elmarie Botha;Charl Oosthuizen;Auto and General;311;114;36,7;88;77,2;R 704 000,00;28,3;0\n\
+Lindiwe Mabaso;Craig Peterson;Sizwe Mgcina;Dial Direct;365;144;39,5;116;80,6;R 928 000,00;31,8;0\n\
+Lindiwe Mabaso;Craig Peterson;Ilse van Wyk;Dial Direct;402;171;42,5;138;80,7;R 1 104 000,00;34,3;0\n\
+Lindiwe Mabaso;Craig Peterson;Katlego Mashaba;Dial Direct;318;119;37,4;91;76,5;R 728 000,00;28,6;1\n\
+Lindiwe Mabaso;Craig Peterson;Bianca Roberts;Dial Direct;347;136;39,2;108;79,4;R 864 000,00;31,1;0\n\
+Lindiwe Mabaso;Craig Peterson;Oscar Mabunda;Dial Direct;295;104;35,3;78;75,0;R 624 000,00;26,4;2\n\
+Lindiwe Mabaso;Craig Peterson;Hesti Kruger;Dial Direct;381;157;41,2;128;81,5;R 1 024 000,00;33,6;0";
+
+document.getElementById('btnSample').onclick = () => {
+  const date = document.getElementById('uploadDate').value || todayISO();
+  ingestCSV(SAMPLE_CSV, date);
+};
+
+renderAll();
+</script>
+</body>
+</html>
