@@ -1,0 +1,46 @@
+A few more points to go with the changes above.
+
+
+7. HOW TO ORDER THE PEOPLE WHO ARE ON R0
+
+Most of my floor will be on R0 at the start of a month, so they must not sit in a random heap at
+the bottom.
+
+- Earners come first, highest rand at the top, as already described.
+- Then everyone on R0, sorted by HOW CLOSE THEY ARE TO QUALIFYING, nearest first.
+- Someone who cleared one gate and just missed the other must sit above someone who missed both
+  badly. The closer you are, the higher you sit.
+- On each of those rows, say in plain words what is standing in their way, for example
+  "3 sales short of 31.6%" or "41 contacts short of gate 338".
+- Never show a R0 group in random or alphabetical order. The point is that people can see how
+  close they are and what to chase.
+
+
+8. TIES
+
+If two people are on exactly the same rand value, break the tie by points, then by
+effectiveness, then by contacts. Never let the order jump around between refreshes.
+
+
+9. DIAL DIRECT DISPLAY
+
+Dial Direct has no effectiveness target yet.
+
+- Do not show "/ 0.0%" next to their effectiveness. It reads like a real target of zero.
+  Show "Display only - no target set" instead.
+- Never show the word "Disabled" anywhere on the board. If a figure does not apply, show a dash.
+  If it does apply, show the real percentage. Their conversion, closing and effectiveness must
+  all still calculate and display normally.
+
+
+10. WHAT THE BOARD SHOWS WHEN NOTHING IS LOADED YET
+
+Since the sample no longer loads by itself, the board will be empty the first time I open it.
+Do not show a blank screen or a row of zeros. Show a short friendly panel that says:
+
+   "Nothing loaded yet.
+    Step 1 - upload your Organogram, the staff list of who works where.
+    Step 2 - upload your daily stats file.
+    Or press Load Sample to see how the board works."
+
+with the three buttons right there on that panel.
