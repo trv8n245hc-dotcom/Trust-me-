@@ -1,0 +1,77 @@
+More fixes for arena.html. Make every change and give me the complete updated file.
+
+
+1. THE SAMPLE DATA IS SHOWING AS IF IT WERE REAL
+
+The board is showing agents and team leaders who do not exist in my company - names like
+Mpho Sebata, Matshidiso Moloko, Nerissa Keyser, Zanelle Jacobs. Those are your made-up sample
+names and they must never be mistaken for my real staff.
+
+- When the sample is loaded, show a large obvious orange banner across the top that says
+  "SAMPLE DATA - this is not your real team" with a "Clear sample" button next to it.
+- The moment I upload a real file, wipe the sample completely. Never mix sample names and real
+  names on the same board, not even for one row.
+- "Clear Month" must also wipe the sample.
+- Do not load the sample automatically when the page opens. Only load it if I press the button.
+
+
+2. EARNINGS IS THE MAIN THING ON THE BOARD
+
+Right now there is no earnings column at all, and the board is sorted by points. Earnings is
+the whole point of this board.
+
+- Add an EARNINGS column showing the rand value, and make it the most prominent column on the
+  row - big, bold, easy to read from a distance.
+- Put it immediately after the agent's name, not squashed at the far end of the table.
+- ALWAYS sort the leaderboard by earnings, highest earner at the top, every time the board
+  loads or refreshes. That is the default and it must never come up sorted by anything else.
+- I can still click other column headings to re-sort temporarily, but it goes back to earnings
+  order whenever new data is loaded.
+- Show the rand value on the agent's row even when it is R0, so nobody has to guess.
+
+
+3. FORGET ALIGNING BRANDS BY TEAM LEADER
+
+Do not try to work out the brand from the team leader's name. Drop that completely.
+The brand comes from the Organogram only, exactly as described before. That is the single
+source of truth for who works where.
+
+
+4. MY DAILY FILE HAS EXACTLY THESE COLUMNS AND NOTHING ELSE
+
+   Business Manager | Team Leader | Operator Name | Inbound Calls | Processed (FA) |
+   Total Contacts (FA) | Conversions (FA) | Leads | Gross Closings | Gross Sales | Gross Eff (FA)
+
+That is the complete list. Note carefully:
+
+- THERE IS NO BRAND COLUMN. Never look for one, never warn me that it is missing, never refuse
+  the file because of it. The brand comes from the Organogram.
+- THERE IS NO QA COLUMN. Never look for one and never warn me about it. I will type QA error
+  points straight into the agent's row on the board, and it must save there.
+- Contacts comes from "Total Contacts (FA)". Never from "Inbound Calls".
+- Sales comes from "Gross Sales", which is a count of sales, not rands.
+- "Gross Closings" is the closing percentage. Call it "Gross Closings" on the board too, so it
+  matches the wording my team already uses. Never read it as a sales count.
+
+
+5. THE COLUMN MATCHING SCREEN
+
+- Remember my column matching after I have set it once. If the next file has the same headings,
+  load it straight away without asking me again.
+- Add a button called "Match my columns" that I can press at any time to open that screen and
+  check or change it myself, even when nothing is wrong.
+- Show the matching it is currently using in plain words on the upload report, for example:
+  "Contacts read from: Total Contacts (FA)". That way I can see at a glance if it grabbed the
+  wrong column.
+- Only pop the screen up on its own when a heading genuinely cannot be matched.
+
+
+6. UPLOAD REPORT
+
+Keep the report, and add a line naming which column each figure was read from, so I can check
+it in one look. Do not report brand or QA as missing - they are not supposed to be in this file.
+
+
+Check your work: the board must open with no sample data, the top earner must be the first row,
+the earnings column must be the most visible number on the row, and a "Total" row must never
+appear as a person.
