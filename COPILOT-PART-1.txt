@@ -1,0 +1,105 @@
+I am going to give you a build brief in 3 parts. This is PART 1 of 3.
+Do not start building yet. Just reply with the word READY.
+Wait until I have sent all 3 parts. Part 3 will tell you to start.
+
+Build me one single HTML file called arena.html.
+
+IMPORTANT INSTRUCTIONS FOR YOU, COPILOT:
+- Save the finished file to my OneDrive. Do NOT save it to ShareFile or SharePoint.
+- If you cannot save the file, then show me the complete code in one single code block
+  so I can copy it myself. Do not split the code across several answers.
+- Everything must be in ONE file: the styling and the code all inside that one file.
+- Do not use any frameworks, libraries, or links to the internet. No React, no jQuery,
+  no Google Fonts, no CDN links. The file must work perfectly when I double-click it on a
+  laptop with no internet connection, and when I email it to someone else.
+- Do not ask me questions. Build the whole thing described below in one go.
+
+WHAT IT IS
+
+A daily sales commission leaderboard called the "Sales Agent Arena" for our
+HiPPO-branded insurance sales floor. Team leads upload a CSV of yesterday's numbers once a
+day. Agents look at the board to see where they stand and what they are earning.
+
+Right now the floor runs a flat commission pool, which pays everyone "on average" and lets
+people coast. It is also unfair between brands, because Budget Insurance receives far more
+contacts than Auto & General, so Budget agents look better on a shared leaderboard purely
+because of call volume. This board replaces that with a bracket system where every target is
+measured against the agent's OWN brand.
+
+1. THE FOUR BRANDS
+
+Budget Insurance    - effectiveness target 31.6%  - earns money
+First for Women     - effectiveness target 34.7%  - earns money
+Auto & General      - effectiveness target 31.5%  - earns money
+Dial Direct         - no target set               - DISPLAY ONLY, earns nothing yet
+
+Dial Direct agents must still appear on the board with their contacts, their effectiveness
+and their own brand average, but they earn R0 and are excluded from all prizes until a
+target is set for them. Ticking a box and typing a target must be enough to switch them on.
+
+
+2. THE TWO GATES - MISS EITHER ONE AND YOU EARN R0
+
+Gate 1 - CONTACTS, measured against your own brand.
+   Work out the brand's average contacts = total contacts in that brand divided by the
+   number of agents in that brand. The agent must have at least 90% of that average.
+   Recalculate this from the uploaded file every single day.
+   The 90% must be editable, separately for each brand.
+
+   This is the most important rule in the whole build. It is what stops a high-volume brand
+   beating a low-volume brand for no reason. Every agent is judged against their own channel.
+
+Gate 2 - EFFECTIVENESS, against that brand's target.
+   Effectiveness = sales divided by contacts, shown as a percentage.
+   The agent must be at or above their brand's target (31.6, 34.7 or 31.5).
+
+If an agent misses EITHER gate, they earn exactly R0. No partial payment. It is a balancing
+act - they have to hit both. Show clearly which gate they failed and by how much, in plain
+words, for example "8 contacts short of gate 352" or "3 sales short of 31.6%". Keep people
+who failed visible on the leaderboard, greyed out, because seeing the gap is what motivates
+them.
+
+
+3. THE BRACKET - HOW MUCH YOU EARN
+
+Effectiveness is the single most important metric in this whole process. It must matter more
+than anything else, both in the weighting and in setting the bracket.
+
+For everyone who cleared both gates:
+   effectiveness depth = their effectiveness divided by their brand's target
+   contacts depth      = their contacts divided by their brand's average contacts
+   points              = bracket multiplier x ((0.70 x effectiveness depth) + (0.30 x contacts depth))
+   their share of the money = their points divided by the total points of everyone who qualified
+
+Bracket multipliers, based on effectiveness depth:
+   Legend     - 130% or more of target - multiplier 2.00
+   Elite      - 120% or more of target - multiplier 1.70
+   Contender  - 110% or more of target - multiplier 1.45
+   Riser      - 105% or more of target - multiplier 1.25
+   Entry      - 100% or more of target - multiplier 1.00
+
+The deeper you go into effectiveness, and the deeper you go into contacts, the higher your
+earning percentage is than the person below you. That is what sets your place on the
+leaderboard - first, second, third, all the way down to last.
+
+
+4. THE MONEY POOL
+
+The whole cohort shares one pool. The base is R450,000.
+
+- The board opens at R450,000 on day one so agents can see the full opportunity immediately.
+  It must NOT start at some small value.
+- Every day, work out participation = the number of agents who qualified divided by the
+  number of agents in earning brands.
+- If today's participation is the same or better than yesterday's, the pool grows by 1.5%.
+  If it drops, the pool shrinks by 1.5%. This compounds day after day, so every single day
+  counts and the value visibly expires if people fall off.
+- The pool may grow above R450,000, but stop it dead at an upper cap of R520,000.
+- It may never fall below 70% of the base.
+- Store one snapshot per reporting date so the daily growth compounds across the month in
+  date order. If I delete a bad upload, the pool must recalculate immediately.
+
+UNLOCK FACTOR: only part of the pool is released, based on participation.
+   unlock = 0.35 + (0.65 x participation)
+This is what stops three people walking away with the entire R450,000. Make the 0.35
+editable.

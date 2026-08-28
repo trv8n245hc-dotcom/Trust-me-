@@ -1,0 +1,94 @@
+This is PART 2 of 3. Do not start building yet. Reply with the word READY.
+
+5. THE PRIZES - ALL PAID OUT OF THE POOL, NEVER ON TOP OF IT
+
+- SUPER CLUB, on bracket points: 1st place R15,000, 2nd place R10,000, 3rd place R8,000.
+- BRAND CHAMPION: R5,000 to the top qualifier in each earning brand. This can stack with
+  Super Club.
+- WINNER'S CIRCLE: if 5 or fewer agents qualify in total, each of them gets an extra 5% to
+  10% of the pool value, sliding with how few there are - 5 qualifiers gets 5% each, 1
+  qualifier gets 10%. This only applies at 5 or fewer.
+
+Work the money out in this order:
+   reserves      = Super Club money + (R5,000 for each earning brand that has a qualifier)
+   circle total  = number of qualifiers x pool x winner's circle percentage
+   distributable = (pool - reserves - circle total) x unlock factor
+   base pay      = the agent's share x distributable
+   gross         = base pay + super club + brand champion + winner's circle
+   final         = gross minus their QA deduction, never below R0, never above R100,000
+
+BUDGET GUARD: after all of that, if the total of everyone's pay would come to more than the
+live pool, scale every single payout down proportionally so it fits. The purpose of a sales
+pool is to manage budget, not to exceed it. It must be impossible to blow the budget.
+
+
+6. QA ERROR POINTS - I MUST BE ABLE TO EDIT THIS
+
+A table with five rows, for error points 1 to 5. Each row lets me choose either a RAND
+deduction or a PERCENTAGE deduction, independently per row. Start it like this:
+
+   1 point  - Rand mode    - R500    - or 2%
+   2 points - Rand mode    - R1,200  - or 5%
+   3 points - Rand mode    - R2,500  - or 10%
+   4 points - Percent mode - R4,000  - or 18%
+   5 points - Percent mode - R6,000  - or 30%
+
+Rand mode takes off the flat amount. Percent mode takes off that share of their gross
+earnings. A deduction can never push someone below R0. QA points come from a column in the
+CSV, and I must also be able to type them straight into the agent's row on the leaderboard.
+
+
+7. THE CSV UPLOAD - THIS PART MUST BE BULLETPROOF
+
+This is where we have the most trouble today, so be generous and forgiving. I export from
+South African Excel, which saves CSV files using a SEMICOLON as the column separator and a
+COMMA as the decimal point. So a number looks like "R 1 072 000,00" and a percentage looks
+like "31,6". Handle all of this automatically without me having to think about it:
+
+- Work out the separator by looking at the heading row. Support semicolon, comma, tab and
+  the pipe symbol. If it is a tie, choose semicolon, because that is what our Excel uses.
+- If the file uses semicolons, treat the comma as a decimal point. If the file uses commas
+  as the separator, treat any comma inside a number as a thousands mark instead.
+- Before reading a number, strip out the letter R, percent signs, brackets, and every kind
+  of space including the invisible ones Excel adds. "R 1 072 000,00" must read as 1072000.
+  "1.234,56" must read as 1234.56. "31,6%" must read as 31.6.
+- Cope with a file saved as "CSV UTF-8" (ignore the hidden marker at the start of the file).
+- Ignore completely blank rows, and ignore any "Total" or "Grand Total" row at the bottom.
+- Cope with headings that have extra spaces, capital letters, or punctuation.
+- Match the heading names loosely. All of these must work:
+     Business Manager, BM, Manager
+     Team Lead, TL, Supervisor, Team Leader
+     Agent, Agent Name, Operator, Consultant, Name
+     Brand, Channel, Campaign
+     Contacts, Contacts Taken, Calls
+     Leads, Leads Created, Quotes
+     Conversions, Conversion, Conversion Rate
+     Sales, Closings, Policies, Deals
+     Gross Sales, Gross Premium, Premium
+     Gross Effectiveness, Effectiveness
+     QA Points, QA, Error Points
+- Match the brand names loosely too. All of these must work: Budget, Budget Insurance,
+  First for Women, First Woman, FFW, Auto and General, Auto & General, A&G, AG,
+  Dial Direct, DialDirect.
+- ALWAYS recalculate conversion, closing and effectiveness from the raw counts
+  (leads divided by contacts, sales divided by leads, sales divided by contacts). Only fall
+  back to the percentage columns in the file if the counts are missing. A wrongly formatted
+  percentage column must never be able to corrupt the standings.
+
+Also give me these three things so a bad file never blocks anybody:
+
+  a) A PASTE FROM EXCEL box. I select the cells in Excel, press Ctrl+C, click into the box
+     on the page and press Ctrl+V, and it loads. This skips the CSV export completely and is
+     the fix for most of our formatting problems. Excel pastes as tab-separated text.
+
+  b) A COLUMN MATCHING screen. If the file has headings you cannot recognise, do not throw
+     an error. Show me each column with a dropdown so I can tell you what it is, then carry
+     on loading.
+
+  c) An UPLOAD REPORT after every load, in plain English: how many agents were read, how
+     many rows were skipped and exactly why, and which brands were found. Never fail
+     silently and never show a technical error message.
+
+I must be able to drag a file anywhere onto the page, or click an Upload button.
+Everything happens inside the browser on my own machine - the data must never be sent
+anywhere.

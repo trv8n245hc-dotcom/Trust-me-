@@ -1,0 +1,100 @@
+This is PART 3 of 3. This is the end of the brief.
+Now build the complete arena.html file exactly as described across all 3 parts.
+
+8. THE SCREENS
+
+THE BIG NUMBER, across the top of every screen.
+The live pool value in very large type. This is the number that flexes up and down with how
+the teams are doing and it needs to be in big writing. Next to it show how far above or below
+the R450,000 base it is, how many days are banked, the participation percentage, the total
+allocated so far, and who the top earner is and what they are on. Add a bar showing where the
+pool is sitting between its floor and its cap.
+
+TAB 1 - ARENA.
+The full leaderboard, ranked first to last. Each row: rank, agent name, their business
+manager, a coloured chip for their brand, their team lead, contacts with the gate result and
+a little progress bar, effectiveness with the target result and a progress bar, conversion,
+closing, their bracket badge, their points, a box to type QA points into, and the rand they
+have earned. Let me sort by any column, search for a name, and filter by brand, by team lead,
+by business manager, and by date.
+
+TAB 2 - BRANDS AND AVERAGES.
+One card per brand showing headcount, the running average contacts, the live contacts gate,
+the effectiveness target, the actual brand effectiveness, and how many have qualified. Every
+agent must be able to see what the running average contacts are for their brand. Underneath,
+let me pick a brand and see every person in it with their actual numbers, ranked on
+effectiveness, with the focus on contacts and effectiveness. Each team lead must be able to
+select their own brand and their own team.
+
+TAB 3 - MY PATH. Two tools, for whichever agent is selected.
+
+  THE COACH - a fun, educational calculator. Remember that conversion is leads out of
+  contacts, closing is sales out of the leads created, and effectiveness is sales divided by
+  contacts taken. Write it in a friendly sentence, for example:
+     "From your 344 contacts, at your current closing of 75.0%, you need 18 more leads -
+      that is 13 more sales - to reach 31.6% effectiveness."
+  If the agent is on zero it must still work and tell them what they need. Add sliders for
+  contacts, leads and sales that instantly recalculate conversion, closing and effectiveness.
+
+  THE PATH LOADER - a box and slider from R0 to R100,000 where the agent types how much they
+  need to earn to be comfortable, and a "Load Path" button. When they press it, work backwards
+  to find the numbers that would pay them that amount against today's actual field, then
+  update contacts, leads, sales, conversion, closing and effectiveness on the board
+  automatically, each showing what it was before. Put a clear banner across the top saying
+  "PROJECTION - this is what your projection would look like if you achieved the following"
+  with a button to go back to the real numbers. Show the rand value they are aiming at in very
+  big writing, along with the rank it would put them at.
+  Be honest with them in three situations:
+     exact hit    - "Path found - hit these numbers and you land here."
+     overshoot    - "Nearest achievable point above your target. Earnings step up in jumps,
+                     at each bracket edge and again when you break into the Super Club."
+     out of reach - "Out of reach today: 18 agents are already sharing this pool. Your
+                     ceiling against the current field is R29,747 - it rises as others fall
+                     away and as the pool grows."
+
+TAB 4 - RULES.
+Every number above must be editable here, on the page, with the board recalculating
+instantly: the pool base, the cap, the floor, the daily 1.5%, the individual R100,000 cap,
+the unlock floor, each brand's target and gate percentage and earning on/off switch and
+colour, the whole bracket table, the 70/30 weighting, the QA table, the Super Club amounts,
+the Brand Champion amount and the Winner's Circle percentages. Save all of it in the browser
+so it is still there tomorrow. Give me a button to export the rules to a file and one to
+import them, so I can send the exact same setup to my other team leads.
+
+
+9. SAVING AND MEMORY
+
+Remember the rules and the daily snapshots in the browser's own storage, so when I close the
+page and open it tomorrow everything is still there. Store the full rows for each date, so
+that if I change a rule it recalculates the whole month properly. If I upload the same date
+twice, replace it rather than counting it twice. Give me a "Clear Month" button that resets
+back to the R450,000 base.
+
+
+10. HOW IT SHOULD LOOK
+
+A dark leaderboard-style page in the HiPPO colours, with each brand's own colour used for its
+rows, chips and cards. Big clear numbers, generous spacing, progress bars on the two gates.
+Use these colours and keep every one of them together in one place at the top of the code so
+they are easy to change:
+
+   HiPPO overall     green #00A758 and #00D46A, with pink #E5007E
+   Budget Insurance  blue #0072CE, with navy #003C71
+   First for Women   pink #E6007E, with magenta #B4006B
+   Auto & General    red #E4002B, with dark red #A30020
+   Dial Direct       violet #6B2FA0
+
+Use a clean modern sans-serif that is already on a Windows machine, such as Segoe UI, so
+nothing has to be downloaded. It must be readable on a phone as well as a laptop, with no
+sideways scrolling of the page - wide tables should scroll inside their own box.
+
+
+11. FINALLY
+
+Put some realistic sample data inside the file itself and add a "Load Sample" button, so that
+the moment I open it I can see the whole thing working with about 38 agents across all four
+brands, before I upload anything real.
+
+Check your own work before you give it to me: make sure a person who fails one gate earns
+exactly R0, make sure the total of everyone's pay never exceeds the live pool, and make sure
+the page opens with no errors when there is no internet connection.

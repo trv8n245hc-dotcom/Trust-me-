@@ -1,0 +1,295 @@
+Build me one single HTML file called arena.html.
+
+IMPORTANT INSTRUCTIONS FOR YOU, COPILOT:
+- Save the finished file to my OneDrive. Do NOT save it to ShareFile or SharePoint.
+- If you cannot save the file, then show me the complete code in one single code block
+  so I can copy it myself. Do not split the code across several answers.
+- Everything must be in ONE file: the styling and the code all inside that one file.
+- Do not use any frameworks, libraries, or links to the internet. No React, no jQuery,
+  no Google Fonts, no CDN links. The file must work perfectly when I double-click it on a
+  laptop with no internet connection, and when I email it to someone else.
+- Do not ask me questions. Build the whole thing described below in one go.
+
+WHAT IT IS
+
+A daily sales commission leaderboard called the "Sales Agent Arena" for our
+HiPPO-branded insurance sales floor. Team leads upload a CSV of yesterday's numbers once a
+day. Agents look at the board to see where they stand and what they are earning.
+
+Right now the floor runs a flat commission pool, which pays everyone "on average" and lets
+people coast. It is also unfair between brands, because Budget Insurance receives far more
+contacts than Auto & General, so Budget agents look better on a shared leaderboard purely
+because of call volume. This board replaces that with a bracket system where every target is
+measured against the agent's OWN brand.
+
+
+1. THE FOUR BRANDS
+
+Budget Insurance    - effectiveness target 31.6%  - earns money
+First for Women     - effectiveness target 34.7%  - earns money
+Auto & General      - effectiveness target 31.5%  - earns money
+Dial Direct         - no target set               - DISPLAY ONLY, earns nothing yet
+
+Dial Direct agents must still appear on the board with their contacts, their effectiveness
+and their own brand average, but they earn R0 and are excluded from all prizes until a
+target is set for them. Ticking a box and typing a target must be enough to switch them on.
+
+
+2. THE TWO GATES - MISS EITHER ONE AND YOU EARN R0
+
+Gate 1 - CONTACTS, measured against your own brand.
+   Work out the brand's average contacts = total contacts in that brand divided by the
+   number of agents in that brand. The agent must have at least 90% of that average.
+   Recalculate this from the uploaded file every single day.
+   The 90% must be editable, separately for each brand.
+
+   This is the most important rule in the whole build. It is what stops a high-volume brand
+   beating a low-volume brand for no reason. Every agent is judged against their own channel.
+
+Gate 2 - EFFECTIVENESS, against that brand's target.
+   Effectiveness = sales divided by contacts, shown as a percentage.
+   The agent must be at or above their brand's target (31.6, 34.7 or 31.5).
+
+If an agent misses EITHER gate, they earn exactly R0. No partial payment. It is a balancing
+act - they have to hit both. Show clearly which gate they failed and by how much, in plain
+words, for example "8 contacts short of gate 352" or "3 sales short of 31.6%". Keep people
+who failed visible on the leaderboard, greyed out, because seeing the gap is what motivates
+them.
+
+
+3. THE BRACKET - HOW MUCH YOU EARN
+
+Effectiveness is the single most important metric in this whole process. It must matter more
+than anything else, both in the weighting and in setting the bracket.
+
+For everyone who cleared both gates:
+   effectiveness depth = their effectiveness divided by their brand's target
+   contacts depth      = their contacts divided by their brand's average contacts
+   points              = bracket multiplier x ((0.70 x effectiveness depth) + (0.30 x contacts depth))
+   their share of the money = their points divided by the total points of everyone who qualified
+
+Bracket multipliers, based on effectiveness depth:
+   Legend     - 130% or more of target - multiplier 2.00
+   Elite      - 120% or more of target - multiplier 1.70
+   Contender  - 110% or more of target - multiplier 1.45
+   Riser      - 105% or more of target - multiplier 1.25
+   Entry      - 100% or more of target - multiplier 1.00
+
+The deeper you go into effectiveness, and the deeper you go into contacts, the higher your
+earning percentage is than the person below you. That is what sets your place on the
+leaderboard - first, second, third, all the way down to last.
+
+
+4. THE MONEY POOL
+
+The whole cohort shares one pool. The base is R450,000.
+
+- The board opens at R450,000 on day one so agents can see the full opportunity immediately.
+  It must NOT start at some small value.
+- Every day, work out participation = the number of agents who qualified divided by the
+  number of agents in earning brands.
+- If today's participation is the same or better than yesterday's, the pool grows by 1.5%.
+  If it drops, the pool shrinks by 1.5%. This compounds day after day, so every single day
+  counts and the value visibly expires if people fall off.
+- The pool may grow above R450,000, but stop it dead at an upper cap of R520,000.
+- It may never fall below 70% of the base.
+- Store one snapshot per reporting date so the daily growth compounds across the month in
+  date order. If I delete a bad upload, the pool must recalculate immediately.
+
+UNLOCK FACTOR: only part of the pool is released, based on participation.
+   unlock = 0.35 + (0.65 x participation)
+This is what stops three people walking away with the entire R450,000. Make the 0.35
+editable.
+
+
+5. THE PRIZES - ALL PAID OUT OF THE POOL, NEVER ON TOP OF IT
+
+- SUPER CLUB, on bracket points: 1st place R15,000, 2nd place R10,000, 3rd place R8,000.
+- BRAND CHAMPION: R5,000 to the top qualifier in each earning brand. This can stack with
+  Super Club.
+- WINNER'S CIRCLE: if 5 or fewer agents qualify in total, each of them gets an extra 5% to
+  10% of the pool value, sliding with how few there are - 5 qualifiers gets 5% each, 1
+  qualifier gets 10%. This only applies at 5 or fewer.
+
+Work the money out in this order:
+   reserves      = Super Club money + (R5,000 for each earning brand that has a qualifier)
+   circle total  = number of qualifiers x pool x winner's circle percentage
+   distributable = (pool - reserves - circle total) x unlock factor
+   base pay      = the agent's share x distributable
+   gross         = base pay + super club + brand champion + winner's circle
+   final         = gross minus their QA deduction, never below R0, never above R100,000
+
+BUDGET GUARD: after all of that, if the total of everyone's pay would come to more than the
+live pool, scale every single payout down proportionally so it fits. The purpose of a sales
+pool is to manage budget, not to exceed it. It must be impossible to blow the budget.
+
+
+6. QA ERROR POINTS - I MUST BE ABLE TO EDIT THIS
+
+A table with five rows, for error points 1 to 5. Each row lets me choose either a RAND
+deduction or a PERCENTAGE deduction, independently per row. Start it like this:
+
+   1 point  - Rand mode    - R500    - or 2%
+   2 points - Rand mode    - R1,200  - or 5%
+   3 points - Rand mode    - R2,500  - or 10%
+   4 points - Percent mode - R4,000  - or 18%
+   5 points - Percent mode - R6,000  - or 30%
+
+Rand mode takes off the flat amount. Percent mode takes off that share of their gross
+earnings. A deduction can never push someone below R0. QA points come from a column in the
+CSV, and I must also be able to type them straight into the agent's row on the leaderboard.
+
+
+7. THE CSV UPLOAD - THIS PART MUST BE BULLETPROOF
+
+This is where we have the most trouble today, so be generous and forgiving. I export from
+South African Excel, which saves CSV files using a SEMICOLON as the column separator and a
+COMMA as the decimal point. So a number looks like "R 1 072 000,00" and a percentage looks
+like "31,6". Handle all of this automatically without me having to think about it:
+
+- Work out the separator by looking at the heading row. Support semicolon, comma, tab and
+  the pipe symbol. If it is a tie, choose semicolon, because that is what our Excel uses.
+- If the file uses semicolons, treat the comma as a decimal point. If the file uses commas
+  as the separator, treat any comma inside a number as a thousands mark instead.
+- Before reading a number, strip out the letter R, percent signs, brackets, and every kind
+  of space including the invisible ones Excel adds. "R 1 072 000,00" must read as 1072000.
+  "1.234,56" must read as 1234.56. "31,6%" must read as 31.6.
+- Cope with a file saved as "CSV UTF-8" (ignore the hidden marker at the start of the file).
+- Ignore completely blank rows, and ignore any "Total" or "Grand Total" row at the bottom.
+- Cope with headings that have extra spaces, capital letters, or punctuation.
+- Match the heading names loosely. All of these must work:
+     Business Manager, BM, Manager
+     Team Lead, TL, Supervisor, Team Leader
+     Agent, Agent Name, Operator, Consultant, Name
+     Brand, Channel, Campaign
+     Contacts, Contacts Taken, Calls
+     Leads, Leads Created, Quotes
+     Conversions, Conversion, Conversion Rate
+     Sales, Closings, Policies, Deals
+     Gross Sales, Gross Premium, Premium
+     Gross Effectiveness, Effectiveness
+     QA Points, QA, Error Points
+- Match the brand names loosely too. All of these must work: Budget, Budget Insurance,
+  First for Women, First Woman, FFW, Auto and General, Auto & General, A&G, AG,
+  Dial Direct, DialDirect.
+- ALWAYS recalculate conversion, closing and effectiveness from the raw counts
+  (leads divided by contacts, sales divided by leads, sales divided by contacts). Only fall
+  back to the percentage columns in the file if the counts are missing. A wrongly formatted
+  percentage column must never be able to corrupt the standings.
+
+Also give me these three things so a bad file never blocks anybody:
+
+  a) A PASTE FROM EXCEL box. I select the cells in Excel, press Ctrl+C, click into the box
+     on the page and press Ctrl+V, and it loads. This skips the CSV export completely and is
+     the fix for most of our formatting problems. Excel pastes as tab-separated text.
+
+  b) A COLUMN MATCHING screen. If the file has headings you cannot recognise, do not throw
+     an error. Show me each column with a dropdown so I can tell you what it is, then carry
+     on loading.
+
+  c) An UPLOAD REPORT after every load, in plain English: how many agents were read, how
+     many rows were skipped and exactly why, and which brands were found. Never fail
+     silently and never show a technical error message.
+
+I must be able to drag a file anywhere onto the page, or click an Upload button.
+Everything happens inside the browser on my own machine - the data must never be sent
+anywhere.
+
+
+8. THE SCREENS
+
+THE BIG NUMBER, across the top of every screen.
+The live pool value in very large type. This is the number that flexes up and down with how
+the teams are doing and it needs to be in big writing. Next to it show how far above or below
+the R450,000 base it is, how many days are banked, the participation percentage, the total
+allocated so far, and who the top earner is and what they are on. Add a bar showing where the
+pool is sitting between its floor and its cap.
+
+TAB 1 - ARENA.
+The full leaderboard, ranked first to last. Each row: rank, agent name, their business
+manager, a coloured chip for their brand, their team lead, contacts with the gate result and
+a little progress bar, effectiveness with the target result and a progress bar, conversion,
+closing, their bracket badge, their points, a box to type QA points into, and the rand they
+have earned. Let me sort by any column, search for a name, and filter by brand, by team lead,
+by business manager, and by date.
+
+TAB 2 - BRANDS AND AVERAGES.
+One card per brand showing headcount, the running average contacts, the live contacts gate,
+the effectiveness target, the actual brand effectiveness, and how many have qualified. Every
+agent must be able to see what the running average contacts are for their brand. Underneath,
+let me pick a brand and see every person in it with their actual numbers, ranked on
+effectiveness, with the focus on contacts and effectiveness. Each team lead must be able to
+select their own brand and their own team.
+
+TAB 3 - MY PATH. Two tools, for whichever agent is selected.
+
+  THE COACH - a fun, educational calculator. Remember that conversion is leads out of
+  contacts, closing is sales out of the leads created, and effectiveness is sales divided by
+  contacts taken. Write it in a friendly sentence, for example:
+     "From your 344 contacts, at your current closing of 75.0%, you need 18 more leads -
+      that is 13 more sales - to reach 31.6% effectiveness."
+  If the agent is on zero it must still work and tell them what they need. Add sliders for
+  contacts, leads and sales that instantly recalculate conversion, closing and effectiveness.
+
+  THE PATH LOADER - a box and slider from R0 to R100,000 where the agent types how much they
+  need to earn to be comfortable, and a "Load Path" button. When they press it, work backwards
+  to find the numbers that would pay them that amount against today's actual field, then
+  update contacts, leads, sales, conversion, closing and effectiveness on the board
+  automatically, each showing what it was before. Put a clear banner across the top saying
+  "PROJECTION - this is what your projection would look like if you achieved the following"
+  with a button to go back to the real numbers. Show the rand value they are aiming at in very
+  big writing, along with the rank it would put them at.
+  Be honest with them in three situations:
+     exact hit    - "Path found - hit these numbers and you land here."
+     overshoot    - "Nearest achievable point above your target. Earnings step up in jumps,
+                     at each bracket edge and again when you break into the Super Club."
+     out of reach - "Out of reach today: 18 agents are already sharing this pool. Your
+                     ceiling against the current field is R29,747 - it rises as others fall
+                     away and as the pool grows."
+
+TAB 4 - RULES.
+Every number above must be editable here, on the page, with the board recalculating
+instantly: the pool base, the cap, the floor, the daily 1.5%, the individual R100,000 cap,
+the unlock floor, each brand's target and gate percentage and earning on/off switch and
+colour, the whole bracket table, the 70/30 weighting, the QA table, the Super Club amounts,
+the Brand Champion amount and the Winner's Circle percentages. Save all of it in the browser
+so it is still there tomorrow. Give me a button to export the rules to a file and one to
+import them, so I can send the exact same setup to my other team leads.
+
+
+9. SAVING AND MEMORY
+
+Remember the rules and the daily snapshots in the browser's own storage, so when I close the
+page and open it tomorrow everything is still there. Store the full rows for each date, so
+that if I change a rule it recalculates the whole month properly. If I upload the same date
+twice, replace it rather than counting it twice. Give me a "Clear Month" button that resets
+back to the R450,000 base.
+
+
+10. HOW IT SHOULD LOOK
+
+A dark leaderboard-style page in the HiPPO colours, with each brand's own colour used for its
+rows, chips and cards. Big clear numbers, generous spacing, progress bars on the two gates.
+Use these colours and keep every one of them together in one place at the top of the code so
+they are easy to change:
+
+   HiPPO overall     green #00A758 and #00D46A, with pink #E5007E
+   Budget Insurance  blue #0072CE, with navy #003C71
+   First for Women   pink #E6007E, with magenta #B4006B
+   Auto & General    red #E4002B, with dark red #A30020
+   Dial Direct       violet #6B2FA0
+
+Use a clean modern sans-serif that is already on a Windows machine, such as Segoe UI, so
+nothing has to be downloaded. It must be readable on a phone as well as a laptop, with no
+sideways scrolling of the page - wide tables should scroll inside their own box.
+
+
+11. FINALLY
+
+Put some realistic sample data inside the file itself and add a "Load Sample" button, so that
+the moment I open it I can see the whole thing working with about 38 agents across all four
+brands, before I upload anything real.
+
+Check your own work before you give it to me: make sure a person who fails one gate earns
+exactly R0, make sure the total of everyone's pay never exceeds the live pool, and make sure
+the page opens with no errors when there is no internet connection.
