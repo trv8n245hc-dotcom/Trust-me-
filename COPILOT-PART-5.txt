@@ -1,0 +1,41 @@
+A bug fix for arena.html. Make this change and give me the complete updated file.
+
+THE ERROR I AM GETTING
+
+   Uncaught SecurityError: Failed to read the 'localStorage' property from 'Window':
+   The document is sandboxed and lacks the 'allow-same-origin' flag.
+
+This happens because I opened the file from the OneDrive preview window, which runs the page in
+a locked-down box where saving to the browser is blocked. Reading or writing localStorage does
+not just come back empty in there - it throws an error and stops the rest of the page from
+running.
+
+THE FIX
+
+1. Wrap EVERY single localStorage read and every localStorage write in its own try/catch.
+   There must not be one place left in the code that touches localStorage outside a try/catch.
+
+2. Write one small helper for reading and one for writing, and use those everywhere instead of
+   touching localStorage directly, so this can never be forgotten again.
+
+3. Test whether storage works ONCE when the page opens, by writing a test value and reading it
+   back inside a try/catch. Remember the answer.
+
+4. If storage does not work, fall back to keeping everything in memory for that session instead.
+   The whole board must still work perfectly - uploading, the leaderboard, the calculators, the
+   rules screen, all of it. The only thing that is lost is remembering it after the page closes.
+
+5. A storage failure must NEVER stop the page from drawing. No red error bar, no missing
+   content, nothing broken on screen.
+
+6. When storage does not work, show one small friendly yellow notice at the top that says:
+
+      "Preview mode - anything you upload will be lost when you close this page.
+       Download this file and open it from your computer to save your data."
+
+   Do not use technical words like localStorage, sandbox, or SecurityError anywhere I can see.
+
+7. Do the same for any other browser storage you used, such as sessionStorage.
+
+Then check it: the page must open with no errors and no red bar, both when it is downloaded and
+opened normally from my computer, and when it is opened inside the OneDrive preview.
