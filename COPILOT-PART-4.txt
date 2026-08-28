@@ -1,0 +1,134 @@
+This is an update to the arena.html you just built. Make every change below and then give
+me the complete updated file. Keep everything else exactly as it already is.
+
+
+1. NEW: THE ORGANOGRAM - A SECOND, SEPARATE UPLOAD
+
+Add a second upload button called "Upload Organogram", plus a paste box for it. This is the
+master staff list. I load it once, it is remembered, and I only replace it when staff change.
+It has these columns:
+
+   Business Manager | Team Leader | Operator Name | Brand
+
+Rules for the organogram:
+- The BRAND ALWAYS COMES FROM HERE. Never try to guess a brand from the daily stats file.
+  My daily file has no brand column at all.
+- Everybody on the organogram appears on the leaderboard FROM DAY ONE, even before any stats
+  are uploaded. They show with zeros and the words "No data yet". Nobody gets added or removed
+  from the leaderboard just because they were off - they sit there all month.
+- Match the daily stats file to the organogram on the Operator Name. Ignore capital letters,
+  extra spaces and double spaces when matching.
+- If a name is in my daily stats file but NOT on the organogram, do not throw it away and do
+  not throw an error. List those names on screen with a brand dropdown so I can add them to the
+  organogram right there in one click.
+- If a name is on the organogram but is missing from the daily file, or is in the file with
+  zero contacts, mark that person ABSENT for that date.
+- Let me edit the organogram on screen, and export it and import it as a file, so I can send
+  the same one to my other team leads.
+
+
+2. FIX HOW YOU READ MY DAILY STATS FILE
+
+My real file has these exact headings, and some of them are misleading, so follow this exactly:
+
+   Business Manager | Team Leader | Operator Name | Inbound Calls | Processed (FA) |
+   Total Contacts (FA) | Conversions (FA) | Leads | Gross Closings | Gross Sales | Gross Eff (FA)
+
+- CONTACTS must come from "Total Contacts (FA)". Do NOT use "Inbound Calls" - it is all zeros
+  in my file and would break everything.
+- SALES must come from "Gross Sales". In my file that column is a COUNT of sales, not a rand
+  value. For example 53 sales.
+- "Gross Closings" is a PERCENTAGE, not a count. It is the closing rate. Never read it as sales.
+- "Conversions (FA)" and "Gross Eff (FA)" are also percentages.
+- There is no rand value column in my file. Do not expect one.
+- When matching column headings, always prefer the closest and longest match. A short word must
+  never be allowed to steal a column from a better match. That is what makes "Inbound Calls" get
+  picked up as contacts, and it must not happen.
+
+MY FILE ALSO HAS SUBTOTAL ROWS IN THE MIDDLE OF THE DATA.
+At the end of each team's block there is a row where the Operator Name is "Total". Skip these
+completely. Skip any row where the Operator Name is blank, or is Total, Totals, Grand Total,
+Subtotal or Sum. Also skip a row if the Operator Name is actually the name of a Team Leader or
+a Business Manager. If you read a "Total" row as if it were a person it would destroy the team
+average and unfairly change everyone's target.
+
+Tell me in the upload report how many rows you skipped and why.
+
+
+3. NEW: AGENT PROFILE POP-UP
+
+When anyone clicks or selects an agent's name anywhere on the board, open a pop-up card showing
+ALL of that person's actual numbers:
+
+   Total contacts, Leads, Sales, Conversion %, Closing %, Effectiveness %
+   Their brand, their team leader, their business manager
+   Their brand's running average contacts and their contacts gate, and whether they cleared it
+   Their brand's effectiveness target, and whether they cleared it
+   Their bracket, their points, their QA points and what it deducted
+   What they have earned in rands
+   Their rank overall and their rank inside their own brand
+   Days present, days absent, and their run rate per day
+
+Make it easy to close and easy to read on a phone.
+
+
+4. NEW: ABSENT DAYS AND WHAT THEY COST
+
+The board already stores one snapshot per date I upload. Use only those uploaded dates - do not
+use a calendar and do not assume a number of working days.
+
+For every agent work out:
+   days present   = the number of uploaded dates where they had contacts above zero
+   days absent    = the number of uploaded dates minus their days present
+   run rate       = their own totals divided by their own days present, for contacts, leads
+                    and sales separately
+
+Then show what the absence cost them:
+   missed contacts = days absent x their contacts run rate
+   missed leads    = days absent x their leads run rate
+   missed sales    = days absent x their sales run rate
+   missed rands    = work out what they would have earned if those missed sales and contacts
+                     were added to their actuals, and show the difference against what they
+                     have actually earned
+
+Write it in a plain sentence in their pop-up, for example:
+   "3 days absent. At your own run rate that is 84 contacts, 34 leads and 11 sales you did not
+    get. Estimated cost to you: R4,200."
+
+If someone has never been present, say "No run rate yet" instead of showing a wrong number.
+
+
+5. NEW: THE TEAM LEADER ABSENCE VIEW
+
+Give each team leader the same thing for their whole team added together. When a team leader
+picks their own name, show:
+
+   Total days absent across the team
+   Total missed contacts, missed leads and missed sales at each person's own run rate
+   The total estimated rand value the team did not earn because of it
+   A list of who was absent and for how many days
+
+Write it as a plain sentence, for example:
+   "Your team lost 11 days this month. At their own run rates that is 308 contacts, 126 leads
+    and 41 sales. Estimated cost to the team: R18,400."
+
+
+6. EVERYTHING MUST COME FROM THE UPLOADED DATA
+
+My targets change every month and my headcount goes up and down. So:
+- Never hard-code a headcount or an average. Work out every brand's average contacts and every
+  brand's gate fresh from whatever was uploaded, every single time.
+- Only count agents who were PRESENT that day in the brand average. Somebody on leave must not
+  drag the average down and make the gate artificially easy for everybody else.
+- Keep all the targets and rules editable on the Rules tab, because they change monthly.
+- If I upload the same date twice, replace it, do not count it twice.
+
+
+7. FINALLY
+
+After the organogram is loaded, every agent and every team leader must be able to find and
+select their own name from a simple dropdown list, and land straight on their own numbers.
+
+Check your work: a person who fails one gate must earn exactly R0, the total of everyone's pay
+must never be more than the live pool, a "Total" row must never appear as a person, and the page
+must open with no errors when there is no internet connection.
