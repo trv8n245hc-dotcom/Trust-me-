@@ -92,18 +92,5 @@ const fs = require('fs');
   console.log('\nexternal reqs  :', reqs.join(', ') || 'none');
   console.log('console errors :', errs.length ? errs.join(' | ') : 'none');
 
-  // ---- the OneDrive case: storage THROWS on access ----
-  const p2 = await b.newPage();
-  const errs2 = [];
-  p2.on('pageerror', e => errs2.push(e.message));
-  p2.on('console', m => { if(m.type()==='error') errs2.push(m.text()); });
-  const src = fs.readFileSync('/home/user/Trust-me-/index.html','utf8');
-  await p2.setContent(`<iframe sandbox="allow-scripts" srcdoc="${src.replace(/"/g,'&quot;')}" style="width:1400px;height:900px;border:0"></iframe>`);
-  await p2.waitForTimeout(1200);
-  const fr = p2.frames()[1];
-  console.log('\n--- sandboxed (OneDrive preview) ---');
-  console.log('page drew      :', await fr.textContent('#potValue'));
-  console.log('preview banner :', (await fr.textContent('#storeBanner')).replace(/\s+/g,' ').trim().slice(0,100));
-  console.log('errors         :', errs2.length ? errs2.join(' | ') : 'none');
   await b.close();
 })();

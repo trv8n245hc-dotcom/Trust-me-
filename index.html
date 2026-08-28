@@ -287,6 +287,7 @@ input[type=range]{width:100%;accent-color:var(--hippo-green-bright)}
         <div id="step1sub">Not loaded — your staff list of who works where</div>
       </div>
       <button class="btn primary sm" id="btnOrg">Upload Organogram</button>
+      <button class="btn sm" id="btnPasteOrg">Paste</button>
     </div>
     <div class="step" id="step2">
       <div class="n">2</div>
@@ -295,6 +296,19 @@ input[type=range]{width:100%;accent-color:var(--hippo-green-bright)}
         <div id="step2sub">Not loaded — today's performance figures</div>
       </div>
       <button class="btn primary sm" id="btnStats">Upload Daily Stats</button>
+      <button class="btn sm" id="btnPasteStats">Paste</button>
+    </div>
+  </div>
+  <div class="panel" id="pastePanel" style="display:none;margin-top:12px">
+    <h3 id="pasteTitle">Paste from Excel</h3>
+    <div class="hint">Select your rows in Excel including the heading row, press Ctrl+C, click in the
+      box and press Ctrl+V. No need to tidy anything first — blank columns, Total rows and people
+      who are not on your organogram are all handled.</div>
+    <textarea id="pasteBox" rows="7" style="width:100%;font-family:monospace;font-size:12px"
+      placeholder="Paste here…"></textarea>
+    <div class="row" style="margin-top:11px">
+      <button class="btn primary" id="btnPasteLoad">Load pasted data</button>
+      <button class="btn ghost" id="btnPasteCancel">Cancel</button>
     </div>
   </div>
   <input type="file" id="fileOrg" accept=".csv,.txt" style="display:none">
@@ -2007,6 +2021,68 @@ function download(text, name, mime){
   };
   fr.readAsText(f);
 }));
+
+/* ---------- pasting straight from Excel ----------
+   Excel puts TAB separated text on the clipboard, which parseCSV already
+   sniffs. So a paste and a CSV land in exactly the same place. */
+function looksLikeTable(txt){
+  if(!txt) return false;
+  const lines = txt.replace(/\r\n?/g,'\n').split('\n').filter(l => l.trim() !== '');
+  return lines.length > 1 && (lines[0].indexOf('\t') > -1 || lines[0].indexOf(';') > -1);
+}
+/* Decide from the headings whether this is the staff list or a day's figures. */
+function isOrgText(txt){
+  const h = parseCSV(txt).headers.map(normHeader);
+  const has = a => h.some(x => x.indexOf(a) > -1);
+  if(has('rawdataname')) return true;
+  return has('brand') && !has('totalcontacts') && !has('grosssales') && !has('leads');
+}
+function loadPasted(txt, forced){
+  if(!looksLikeTable(txt)){
+    toast('That does not look like rows from Excel. Copy the heading row and the data together.', true);
+    return false;
+  }
+  const kind = forced || (isOrgText(txt) ? 'org' : 'stats');
+  if(kind === 'org'){
+    if(ingestOrg(txt)){ reprocess(); return true; }
+    return false;
+  }
+  /* The commonest paste mistake is leaving the heading row behind. A column
+     mapper cannot fix that, so say so plainly instead of opening one. */
+  const map = mapHeaders(parseCSV(txt).headers);
+  if(!map.name && !map.contacts){
+    toast('Include the heading row when you copy — I cannot tell which column is which without it.', true);
+    return false;
+  }
+  ingestStats(txt, document.getElementById('uploadDate').value || todayISO(), false);
+  return true;
+}
+let pasteKind = 'stats';
+function openPaste(kind){
+  pasteKind = kind;
+  document.getElementById('pasteTitle').textContent =
+    kind === 'org' ? 'Paste your organogram from Excel' : 'Paste your daily actuals from Excel';
+  const box = document.getElementById('pasteBox');
+  box.value = '';
+  document.getElementById('pastePanel').style.display = '';
+  box.focus();
+}
+document.getElementById('btnPasteOrg').onclick = () => openPaste('org');
+document.getElementById('btnPasteStats').onclick = () => openPaste('stats');
+document.getElementById('btnPasteCancel').onclick = () => { document.getElementById('pastePanel').style.display='none'; };
+document.getElementById('btnPasteLoad').onclick = () => {
+  if(loadPasted(document.getElementById('pasteBox').value, pasteKind))
+    document.getElementById('pastePanel').style.display = 'none';
+};
+/* Paste anywhere on the page. Typing into a field is left alone. */
+document.addEventListener('paste', e => {
+  const t = e.target;
+  if(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) return;
+  const txt = (e.clipboardData || window.clipboardData).getData('text');
+  if(!looksLikeTable(txt)) return;
+  e.preventDefault();
+  loadPasted(txt);
+});
 
 /* ---------- sample ---------- */
 const SAMPLE_ORG = "Sales Agent Name;Raw Data Name;Brand;Team Leader;Business Manager\n\

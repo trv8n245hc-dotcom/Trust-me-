@@ -1642,63 +1642,83 @@ function MiniCard({ p, rank, onClick, onCompare, inCompare }: {
 
 # 🏆 HiPPO Sales Agent Arena — Commission Board
 
-A separate, self-contained tool in this repo: **`index.html`**. Open it by double-clicking —
-no install, no server, no internet connection required. Share it as a single file with team
-leads.
+A self-contained tool in this repo: **`index.html`**. Download it, double-click it — no install,
+no server, no internet connection. Share it as one file with your team leads.
 
-## Daily use (team leads)
+## Daily use
 
-1. Export the daily stats from Excel and save as CSV. South African Excel (`;` delimited,
-   comma decimals) is handled automatically — so is the UK/US format.
-2. Open `index.html`, set the **Reporting date**, click **Upload Daily CSV** (or drag the
-   file anywhere onto the page).
-3. Filter the Arena by your own name in **Team lead** to see just your people.
+**Copy your rows in Excel (including the heading row) and press Ctrl+V anywhere on the page.**
+That is the whole routine. Nothing needs tidying first — trailing blank columns, `Total`
+subtotal rows in the middle of the data, and people who are not on your organogram are all
+handled. You can also use the Upload buttons if you prefer working from a file.
 
-Press **Load Sample** at any time to see how the board behaves with example data.
-`sample-data.csv` in this repo is that same file, if you want the exact column shape.
+**Step 1 — Organogram.** Your staff list, loaded once and remembered:
 
-### Columns it looks for
+    Sales Agent Name | Raw Data Name | Brand | Team Leader | Business Manager
 
-Business Manager · Team Lead · Agent · Brand · Contacts · Leads · Conversions · Sales ·
-Gross Sales · Gross Effectiveness · QA Points
+The two name columns exist because your export spells people differently from your staff list.
+It says `Sioban Nuwenhuis`; her official name is `Siobhan Nieuwenhuis - JHB Agent`. The board
+**matches on Raw Data Name and displays Sales Agent Name**, so nothing is ever guessed. If
+someone shows up on the Names tab, fix their Raw Data Name so it matches the export exactly.
 
-Header names are matched loosely (`Operator`, `Consultant`, `TL`, `A&G`, `First Woman` all
-work). Conversion, closing and effectiveness are always recomputed from the raw counts, so a
-mis-exported percentage column cannot corrupt the standings.
+`organogram.csv` in this repo is a ready-made 27-person list.
+
+**Step 2 — Daily actuals.** Your export, as it comes:
+
+    Business Manager | Team Leader | Operator Name | Inbound Calls | Processed (FA) |
+    Total Contacts (FA) | Conversions (FA) | Leads | Gross Closings | Gross Sales | Gross Eff (FA)
+
+Contacts are read from `Total Contacts (FA)` (never `Inbound Calls`) and sales from `Gross Sales`,
+which in this export is a **count**, not a rand value. After every load the board checks its own
+reading against the percentages already in your file and says so in plain words.
 
 ## How an agent earns
 
-**Two gates. Miss either one and you earn R0 — there is no partial credit.**
+**Two gates. Miss either one and you earn R0.**
 
-1. **Contacts** — you must be within 90% of *your own brand's* running average. Budget's
-   average is not First for Women's average, so brands with heavier contact flow get no
-   free advantage.
-2. **Effectiveness** (sales ÷ contacts) — Budget 31.6%, Auto & General 31.5%,
-   First for Women 34.7%.
+1. **Contacts** — at least 90% of *your own brand's* running average, recalculated daily from
+   people who were actually present. Budget's average is not First for Women's average.
+2. **Effectiveness** (sales ÷ contacts) — Budget 31.6%, Auto & General 31.5%, First for Women 34.7%.
 
-Clear both and you enter a bracket. How deep past your effectiveness target you go sets your
-multiplier (Entry ×1.00 → Legend ×2.00), and your share of the pool follows from there.
-Effectiveness is weighted at 70% and also drives the bracket — it is the metric that pays.
+Clear both and you enter a bracket. Depth past your effectiveness target sets the multiplier
+(Entry ×1.00 → Legend ×2.00). Effectiveness carries 70% of the weight *and* drives the bracket —
+it is the metric that pays.
 
-**On top of the bracket:** Super Club R15,000 / R10,000 / R8,000 for the top three, R5,000 for
-finishing top of your own brand, and a Winner's Circle of 5–10% of the pool each when 5 or
-fewer agents qualify. QA error points (1–5) deduct either a rand value or a percentage.
+**On top:** Super Club R15,000 / R10,000 / R8,000, R5,000 for topping your own brand, and a
+Winner's Circle of 5–10% of the pool each when 5 or fewer qualify. QA points (1–5) deduct either
+a rand value or a percentage. Every bonus comes **out of** the pool, and a final guard makes it
+impossible to exceed the budget.
 
 ## The pool
 
-Opens at **R450,000** and moves ±1.5% every day on collective participation — more people
-clearing both gates grows it, people falling off shrinks it. Every day counts. It is capped
-so the budget can never be exceeded.
+Opens at **R450,000** and moves ±1.5% a day on collective participation. It may grow above base,
+capped at R520,000, and never falls below 70%.
 
-## My Path tab
+## Tabs
 
-- **The Coach** — "From your 344 contacts, at your current closing of 75.0%, you need 18 more
-  leads to reach 31.6% effectiveness." Plus live sliders.
-- **The Path Loader** — enter what you want to earn (R0–R100,000), press Load Path, and every
-  metric updates to the numbers that would get you there against today's live field.
+- **Arena** — the leaderboard, earnings first, highest earner at the top. Below the earners,
+  everyone on R0 is ordered by how close they are to qualifying. Click any name for their full card.
+- **Brands & averages** — each brand's headcount, running average, live gate and target.
+- **My Path** — the Coach ("you need 4 more leads to reach 31.6%"), the Path Loader (enter a rand
+  target, every metric back-solves), and the team-lead absence roll-up.
+- **Names** — anyone in your export who is not on the organogram. Ignore them once and they are
+  never raised again. Nothing here blocks the board.
+- **Rules** — every target, gate, bracket, QA row and pool value, editable and saved.
 
-## Editing the rules
+## Absence
 
-Everything — targets, gates, brackets, QA table, pool size, bonus values — is editable in the
-**Rules** tab and saves to your browser. Export the rules as JSON to share an identical
-configuration with other team leads. Full specification in `COPILOT_PROMPT.md`.
+Anyone missing from a day's file, or on zero contacts, counts as absent. The board works out
+their own run rate from the days they were present and shows what the absence cost — per agent,
+and totalled for each team lead.
+
+## Tests
+
+    node tests/engine-test.js     # 106 assertions against the real export shape
+    node tests/paste-test.js      # the paste-from-Excel workflow
+    node tests/browser-test.js    # full UI pass, no console errors, no network
+    node tests/sandbox-test.js    # the OneDrive preview case (storage blocked)
+
+## A note on OneDrive
+
+Opening the file from the OneDrive preview works, but OneDrive blocks saving, so your organogram
+would need re-uploading every time. Download the file and open it from your computer.

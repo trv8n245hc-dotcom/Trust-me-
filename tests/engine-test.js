@@ -219,5 +219,36 @@ E.CONFIG.pool.base = 450000;
 ok('budget guard holds after every rules change',
    E.currentBoard().agents.reduce((s,a)=>s+a.pay,0) <= E.currentBoard().poolInfo.pool+0.01);
 
+/* ------------------------------------------------- 15. paste from Excel */
+head('15. Pasting straight from Excel (tab separated)');
+const TSV = STATS.split('\n').map(l=>l.split(';').join('\t')).join('\n');
+E.STATE.org=[]; E.STATE.days={}; E.CONFIG.ignoredNames=[]; E.CONFIG.aliases={};
+const ORG_TSV = ORG.split('\n').map(l=>l.split(';').join('\t')).join('\n');
+ok('organogram pastes as TSV', E.ingestOrg(ORG_TSV)===true);
+ok('  27 people', E.STATE.org.length===27, E.STATE.org.length);
+ok('  Raw Data Name survives the paste',
+   E.STATE.org.find(x=>x.salesName.indexOf('Siobhan')===0).rawName==='Sioban Nuwenhuis');
+E.ingestStats(TSV, '2026-09-01', false);
+const pr = E.STATE.report;
+ok('stats paste loads the same 27 agents', pr.loaded===27, pr.loaded);
+ok('  same 6 unknown', E.STATE.unknown.length===6, E.STATE.unknown.length);
+ok('  same 4 Total rows skipped', pr.skipped.filter(x=>x.name==='Total').length===4);
+ok('  4 blank columns still dropped', pr.dropped===4, pr.dropped);
+ok('  contacts still from Total Contacts (FA)', pr.cols.contacts==='Total Contacts (FA)', pr.cols.contacts);
+ok('  sales still from Gross Sales', pr.cols.sales==='Gross Sales', pr.cols.sales);
+ok('  all three ratios still reconcile',
+   pr.recon.conv.bad===0 && pr.recon.closing.bad===0 && pr.recon.eff.bad===0);
+const pb = E.currentBoard();
+ok('  identical Budget average to the CSV path', near(pb.brands.BUDGET.avgContacts, expAvg, 0.01),
+   pb.brands.BUDGET.avgContacts.toFixed(2)+' vs '+expAvg.toFixed(2));
+ok('  identical gate', near(pb.brands.BUDGET.gate, expAvg*0.9, 0.01));
+ok('  Kimisha still excluded from the maths', pb.brands.BUDGET.headcount===10, pb.brands.BUDGET.headcount);
+
+/* headerless paste must be refused, not mis-read */
+const noHeader = TSV.split('\n').slice(1).join('\n');
+const mapNo = E.mapHeaders(E.parseCSV(noHeader).headers);
+ok('a paste with no heading row matches nothing', !mapNo.name && !mapNo.contacts,
+   JSON.stringify(mapNo));
+
 console.log('\n'+'='.repeat(52)+'\n  '+pass+' passed, '+fail+' failed\n'+'='.repeat(52));
 process.exit(fail?1:0);
