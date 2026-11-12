@@ -2,6 +2,17 @@
 
 Scripts that profile and audit the **UPdate** channel-performance workbook. They work on any refreshed copy that keeps the same layout.
 
+## Excel macro (no Python needed): `UPdateAudit.bas`
+
+1. Open the workbook in Excel and press **Alt+F11**. Choose **File > Import File…** and pick `UPdateAudit.bas`.
+2. Paste or refresh your Exec and trend sheets as usual.
+3. Press **Alt+F8**, choose **RunFullAudit** and click **Run**. Save as **.xlsm** to keep the macro.
+
+Each run deletes and rebuilds these sheets only: **Audit Summary**, **Weighted Conv & Closing**, **Calc Errors**, **Brand x Item**, **Trend Shifts**, **Meta - Sheets / Columns / Rows**. Your data sheets are never changed.
+
+The macro finds sheets by layout, not by name, so next month's renamed sheets still work. An Exec sheet is one where C2 starts with "From Date": the latest single-month sheet is the current month, the one before it is the prior month, and the sheet where B2 ≠ B3 is YTD. A trend sheet is one with a row of YYYYMM periods near the top. The Weighted sheet uses live formulas that point at the current Exec sheet. If you paste new numbers into that sheet, the weighted figures update straight away. Re-run the macro after a layout change so the row references get refreshed.
+`RunFullAuditSilent` does the same thing without pop-ups, for scheduled runs.
+
 | Script | What it does |
 |---|---|
 | `profile_workbook.py` | Generic metadata for **any** `.xlsx`: one row per sheet, per used column and per non-empty row. It covers the used range, formulas, merged cells, header and period rows, monthly-column range, working days, data-type mix, error-value cells, numeric stats, the brand and section each row belongs to, and flags. |
