@@ -2,16 +2,25 @@
 
 Scripts that profile and audit the **UPdate** channel-performance workbook. They work on any refreshed copy that keeps the same layout.
 
-## Excel macro (no Python needed): `UPdateAudit.bas`
+## Excel macro: `UPdateReport.bas` (use this one)
 
-1. Open the workbook in Excel and press **Alt+F11**. Choose **File > Import File…** and pick `UPdateAudit.bas`.
-2. Paste or refresh your Exec and trend sheets as usual.
-3. Press **Alt+F8**, choose **RunFullAudit** and click **Run**. Save as **.xlsm** to keep the macro.
+1. Open the workbook and press **Alt+F11**. Remove any old `UPdateAudit` module, then choose **File > Import File…** and pick `UPdateReport.bas`.
+2. Paste your refreshed sheets.
+3. Press **Alt+F8**, choose **RunReport** and click **Run**. Save as **.xlsm**.
 
-Each run deletes and rebuilds these sheets only: **Audit Summary**, **Weighted Conv & Closing**, **Calc Errors**, **Brand x Item**, **Trend Shifts**, **Meta - Sheets / Columns / Rows**. Your data sheets are never changed.
+The macro builds these sheets on every run. It never changes your data sheets.
 
-The macro finds sheets by layout, not by name, so next month's renamed sheets still work. An Exec sheet is one where C2 starts with "From Date": the latest single-month sheet is the current month, the one before it is the prior month, and the sheet where B2 ≠ B3 is YTD. A trend sheet is one with a row of YYYYMM periods near the top. The Weighted sheet uses live formulas that point at the current Exec sheet. If you paste new numbers into that sheet, the weighted figures update straight away. Re-run the macro after a layout change so the row references get refreshed.
-`RunFullAuditSilent` does the same thing without pop-ups, for scheduled runs.
+| Sheet | What it is |
+|---|---|
+| Report Checks | Control sheet. Shows which sheets and columns were found, how many recalculated values differ, Brand Total vs Direct + Non-Direct, and every parent line whose child lines don't add up (with links). |
+| Replica - <period> | One per Exec sheet: same rows, labels and metric groups, with merged headings. Volumes link to your cells. Tar Dif, Tar Var, Closing, CXD and W Tar Var are live formulas, and any cell that differs from your sheet is shaded orange. Parent-vs-children sums sit on the right. |
+| Brand x Source | Every Summary-tab block by brand: Dialler totals, JHB Digital Pure, KZN, Hippo Branded, Affiliates, Google, Social Media, Internet, DM, Display, partners (JAG…), Online Quoting and JHB Inbound (Connex). Shows current vs prior month, recalculated rates, and a check against the reported conversion. |
+| Monday View | The same blocks: Mon vs Tue–Thu vs Fri vs Sat, using totals (leads ÷ processed). Includes the Monday gap and sales lost per Monday. |
+| Weighted Conv & Closing | How targets and W Targets are built, rebuilt with formulas. |
+
+**Why it stays correct on any version of the document.** No column letters or row numbers are fixed. Exec columns are found from the header text ("Contacts", "Leads", … / "Actual", "Target", …), and rows from their label within their own block. Summary months, weeks and days are found from the "Period ->" and weekday rows. `tests/verify_report.py` recalculates every value independently. It passed (65,116 values, 0 failures) on the July file. It also passed on a copy with extra columns and rows inserted, the sheet renamed and contacts changed by +37%.
+
+Colours: green is positive, red is negative, black is everything else. CXD variances are inverted, because more cancellations is bad.
 
 | Script | What it does |
 |---|---|
