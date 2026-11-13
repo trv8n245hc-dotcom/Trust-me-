@@ -6,19 +6,23 @@ Scripts that profile and audit the **UPdate** channel-performance workbook. They
 
 1. Open the workbook and press **Alt+F11**. Remove any old `UPdateAudit` module, then choose **File > Import File…** and pick `UPdateReport.bas`.
 2. Paste your refreshed sheets.
-3. Press **Alt+F8**, choose **RunReport** and click **Run**. Save as **.xlsm**.
+3. Press **Alt+F8**, choose **RunReport** and click **Run**. Save as **.xlsm**. (`RunAudit` is optional and builds the replica sheets.)
 
-The macro builds these sheets on every run. It never changes your data sheets.
+Each run builds these sheets. Your data sheets are never changed.
 
-| Sheet | What it is |
+| Sheet | What it shows |
 |---|---|
-| Report Checks | Control sheet. Shows which sheets and columns were found, how many recalculated values differ, Brand Total vs Direct + Non-Direct, and every parent line whose child lines don't add up (with links). |
-| Replica - <period> | One per Exec sheet: same rows, labels and metric groups, with merged headings. Volumes link to your cells. Tar Dif, Tar Var, Closing, CXD and W Tar Var are live formulas, and any cell that differs from your sheet is shaded orange. Parent-vs-children sums sit on the right. |
-| Brand x Source | Every Summary-tab block by brand: Dialler totals, JHB Digital Pure, KZN, Hippo Branded, Affiliates, Google, Social Media, Internet, DM, Display, partners (JAG…), Online Quoting and JHB Inbound (Connex). Shows current vs prior month, recalculated rates, and a check against the reported conversion. |
-| Monday View | The same blocks: Mon vs Tue–Thu vs Fri vs Sat, using totals (leads ÷ processed). Includes the Monday gap and sales lost per Monday. |
-| Weighted Conv & Closing | How targets and W Targets are built, rebuilt with formulas. |
+| Clean - <period> (month, prior month, YTD) | Built from the Exec sheets. Includes Traditional (Generic + E-Commerce), Competition, Online Quoting (PNV + PV, without End to End), Direct Marketing and Hippo (Branded + Transfers), for Budget, FFW, Dialdirect, A&G and their 4-brand total. Virseker, Affiliates, Outbound / Multibrand and Non-Direct are excluded. Contacts, leads and sales show Actual, Projecting and Target (target summed over the included lines only), plus the variance. Conversion and effectiveness are weighted by contacts, and closing = sales ÷ leads, each for actual and target. Below the tables: a reconciliation (reported Direct = clean total + each excluded item) and a method check (the reported rates rebuilt from their lines). |
+| Source x Brand | Summary-tab sources (Hippo Branded, Google, Social Media, Internet Organic / Direct, Display Banner, DM Internal, Online Quoting PV / PNV, JHB Inbound) for each brand and the 4-brand total, current vs prior month. |
+| Day by Day | Every day, per brand and 4-brand total, Mondays shaded. |
+| Monday View | Mon vs Tue–Thu vs Fri vs Sat, per source and brand, with sales lost per Monday. |
+| Source Explorer | Pick a source and a brand from the dropdowns to see every month, week and day side by side. |
+| Weighted Conv & Closing | How targets and W Targets are built. |
+| Source Data | The tidy base table (links to the Summary tab) that the source views use. |
 
-**Why it stays correct on any version of the document.** No column letters or row numbers are fixed. Exec columns are found from the header text ("Contacts", "Leads", … / "Actual", "Target", …), and rows from their label within their own block. Summary months, weeks and days are found from the "Period ->" and weekday rows. `tests/verify_report.py` recalculates every value independently. It passed (65,116 values, 0 failures) on the July file. It also passed on a copy with extra columns and rows inserted, the sheet renamed and contacts changed by +37%.
+The rules are set as constants at the top of the module (`SOURCES_INCLUDED`, etc.). `RunAudit` adds the optional replica and Report Checks sheets.
+
+**Why it stays correct on any version of the document.** No column letters or row numbers are fixed. Exec columns are found from the header text, rows from their label within each brand page, and Summary months, weeks and days from the "Period ->" and weekday rows. `tests/verify_clean.py` rebuilds every clean-view and source-view figure from the rules independently. It passed (6,591 values, 0 failures) on the July file and on a copy with columns and rows inserted, the sheet renamed and contacts changed by +37%.
 
 Colours: green is positive, red is negative, black is everything else. CXD variances are inverted, because more cancellations is bad.
 
